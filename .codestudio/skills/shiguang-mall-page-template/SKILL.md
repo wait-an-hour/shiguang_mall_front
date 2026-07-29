@@ -1,34 +1,39 @@
 ---
 name: "shiguang-mall-page-template"
-description: "Defines Shiguang Mall web page templates and visual style. Invoke when designing, creating, or reviewing Vue web pages for this project."
+description: "Defines calm Shiguang Mall web page templates and visual style. Invoke when designing, creating, or reviewing Vue web pages for this project."
 ---
 
-# Shiguang Mall Page Template And Visual Style
+# Shiguang Mall Page Template And Calm Visual Style
 
-Use this skill when designing, creating, modifying, or reviewing any Shiguang Mall web page. It standardizes page layout, visual style, component usage, interaction states, and collaboration rules so multiple frontend developers and agents produce consistent pages.
+Use this skill when designing, creating, modifying, or reviewing any Shiguang Mall web page. It standardizes calm page layout, visual style, component usage, interaction states, and collaboration rules so multiple frontend developers and agents produce consistent, comfortable pages.
 
 This skill complements `shiguang-mall-web-style`, `vue-best-practices`, `vue-router-best-practices`, and `vue-pinia-best-practices`.
 
-## 1. Product Positioning
+## 1. Design Direction
 
-Shiguang Mall is a teaching-oriented multi-merchant e-commerce system. The web UI must feel clear, reliable, and business-focused rather than decorative. Prioritize transaction correctness, readable status, permission clarity, and consistent workflows.
+Shiguang Mall is a teaching-oriented multi-merchant e-commerce system. The UI should be comfortable, clear, restrained, and easy to use for long sessions. Prefer business readability over visual drama.
 
 Design keywords:
 
-- Clean
+- Calm
+- Clear
 - Trustworthy
+- Lightweight
 - Structured
-- Efficient
-- Commerce-oriented
-- Easy to review
+- Easy to scan
+- Easy to maintain
 
 Avoid:
 
-- Overly playful visual effects
-- Inconsistent colors between pages
-- Hidden business states
-- Dense pages without hierarchy
-- Custom UI patterns when Element Plus already provides a suitable component
+- Large saturated backgrounds
+- Heavy shadows
+- Too many gradients
+- Too many status colors on one screen
+- Dense cards competing for attention
+- Decorative effects that do not improve comprehension
+- Custom components when Element Plus already provides a suitable pattern
+
+Default aesthetic: light, low-contrast, card-based, spacious, with blue as the only primary accent.
 
 ## 2. Core Stack And UI Library
 
@@ -50,91 +55,109 @@ Rules:
 - Page views live under `src/views`.
 - Reusable page sections live under `src/components`.
 - API requests go through `src/api`, never directly in templates.
-- Cross-page state goes through Pinia only when needed.
+- Cross-page state goes through Pinia only when it is shared across pages.
 
-## 3. Visual Design Tokens
+## 3. Calm Visual Tokens
 
-Use these as the default design language unless an existing theme file already defines stricter values.
+Use these values unless the project theme already defines stricter tokens.
 
 ### 3.1 Colors
 
+Use fewer, softer colors. Primary blue should guide actions, not dominate the page.
+
 | Token | Value | Usage |
 | --- | --- | --- |
-| Primary | `#1E6BFF` | Main actions, active navigation, links |
-| Primary Hover | `#3F82FF` | Hover state for primary actions |
-| Success | `#16A34A` | Success status, paid, completed, enabled |
-| Warning | `#F59E0B` | Pending, waiting, low stock, review |
-| Danger | `#DC2626` | Delete, reject, failed, cancelled, risk |
-| Info | `#64748B` | Secondary metadata |
-| Text Primary | `#1F2937` | Main text |
-| Text Regular | `#4B5563` | Body text |
-| Text Secondary | `#6B7280` | Descriptions, table metadata |
+| Primary | `#2563EB` | Main action, active menu, link |
+| Primary Soft | `#EFF6FF` | Active menu background, selected card |
+| Success | `#16A34A` | Completed, paid, enabled |
+| Success Soft | `#ECFDF3` | Success tag background |
+| Warning | `#D97706` | Pending, low stock, waiting |
+| Warning Soft | `#FFFBEB` | Warning tag background |
+| Danger | `#DC2626` | Delete, failed, rejected |
+| Danger Soft | `#FEF2F2` | Danger tag background |
+| Info | `#475569` | Neutral metadata |
+| Text Primary | `#111827` | Headings and important values |
+| Text Regular | `#374151` | Body text |
+| Text Secondary | `#6B7280` | Descriptions and helper text |
+| Text Muted | `#9CA3AF` | Placeholder and less important text |
 | Border | `#E5E7EB` | Card, table, form borders |
-| Page Background | `#F5F7FA` | App background |
-| Card Background | `#FFFFFF` | Content containers |
+| Divider | `#F1F5F9` | Internal card dividers |
+| Page Background | `#F7F8FA` | App background |
+| Card Background | `#FFFFFF` | Main content cards |
+| Header Background | `#FFFFFF` | Top bars |
 
 ### 3.2 Spacing
 
-Use an 8px spacing system:
+Use an 8px spacing system and keep pages breathable.
 
 | Token | Value | Usage |
 | --- | --- | --- |
-| `xs` | `4px` | Icon gap, compact inline spacing |
-| `sm` | `8px` | Button groups, tag gap |
-| `md` | `16px` | Form item groups, card inner blocks |
+| `xs` | `4px` | Icon gap, tag inner gap |
+| `sm` | `8px` | Button groups, inline controls |
+| `md` | `16px` | Card padding, form groups |
 | `lg` | `24px` | Page sections |
 | `xl` | `32px` | Major layout separation |
 
-### 3.3 Radius And Shadow
+Rules:
 
-- Small radius: `6px` for tags and small controls.
-- Card radius: `10px` for page cards.
-- Dialog radius: `12px`.
-- Default card shadow should be subtle: `0 4px 16px rgba(15, 23, 42, 0.06)`.
-- Avoid heavy shadows in admin pages.
+- Page content gap: `16px` or `24px`.
+- Card padding: usually `16px` or `20px`.
+- Avoid stacking many cards with different padding styles.
+
+### 3.3 Radius, Border, Shadow
+
+Prefer borders over shadows for admin and merchant pages.
+
+- Control radius: `6px`.
+- Card radius: `8px` or `10px`.
+- Dialog radius: `10px`.
+- Default card border: `1px solid #E5E7EB`.
+- Default card shadow: none or `0 1px 2px rgba(15, 23, 42, 0.04)`.
+- Avoid floating, glassmorphism, neon shadows, and dramatic elevation.
 
 ### 3.4 Typography
 
 | Level | Size | Weight | Usage |
 | --- | --- | --- | --- |
-| Page title | `20px` | `600` | Top page title |
+| Page title | `20px` | `600` | Page title |
 | Section title | `16px` | `600` | Card title |
 | Body | `14px` | `400` | Tables, forms, normal text |
-| Secondary | `13px` | `400` | Metadata and tips |
-| Caption | `12px` | `400` | Tags, helper text |
+| Secondary | `13px` | `400` | Descriptions and metadata |
+| Caption | `12px` | `400` | Tags and helper text |
 
 Rules:
 
 - Do not use more than three font sizes on one page unless necessary.
-- Numbers such as amounts, stock, and order totals should align clearly.
-- Use Chinese labels for UI text and stable English enum codes for logic.
+- Use font weight sparingly; avoid making every label bold.
+- Amounts and key counts can be bold, but should not all be oversized.
+- UI labels use Chinese; logic uses stable English enum codes.
 
 ## 4. Layout Types
 
 ### 4.1 Buyer Mall Layout
 
-Use for routes such as `/`, `/products`, `/cart`, `/checkout`, `/orders`, `/account/*`.
+Use for `/`, `/products`, `/cart`, `/checkout`, `/orders`, `/account/*`.
 
 Structure:
 
 ```text
 BuyerLayout
 ├── TopHeader: logo, search, user menu, cart entry
-├── Category/Nav area when needed
+├── Optional category navigation
 ├── Main content container, max width 1200px
-└── Footer: simple project/team info
+└── Simple footer
 ```
 
 Rules:
 
-- Product browsing pages can be anonymous.
-- Account, cart, checkout, payment, and order pages require login.
-- Main content width should usually be `1200px`.
-- Buyer pages can use more whitespace and card-based product displays.
+- Header stays white or near-white.
+- Product pages may use more whitespace and card layouts.
+- Price can use danger red, but do not overuse red in surrounding UI.
+- Checkout/payment amount should be prominent but not oversized.
 
 ### 4.2 Merchant Workspace Layout
 
-Use for routes under `/merchant`.
+Use for `/merchant` routes.
 
 Structure:
 
@@ -143,20 +166,22 @@ MerchantLayout
 ├── TopBar: active shop, user, logout
 ├── SideMenu: product, inventory, orders
 └── Main
+    ├── Breadcrumb, optional
     ├── PageHeader
     └── PageContent
 ```
 
 Rules:
 
-- Always show current shop context when inside shop-specific pages.
-- All shop business pages must include `shopId` in the route or selected context.
-- Use tables for lists and forms/dialogs for operations.
-- Keep action buttons state-driven by backend status and permissions.
+- Prefer a light sidebar or very restrained dark sidebar. Avoid gradient sidebars by default.
+- Always show current shop context.
+- Use tables for lists and simple cards for summary metrics.
+- Keep operation buttons predictable and aligned to the right.
+- Do not make every metric card visually loud; only urgent counts need warning emphasis.
 
 ### 4.3 Platform Admin Layout
 
-Use for routes under `/admin`.
+Use for `/admin` routes.
 
 Structure:
 
@@ -173,29 +198,25 @@ AdminLayout
 Rules:
 
 - Target desktop management use, minimum width 1280px.
-- Prefer dense but readable table layouts.
+- Prefer dense but readable tables.
 - Use breadcrumbs for nested pages.
 - Use confirmation dialogs for destructive and status-changing actions.
+- Keep platform pages quieter than buyer marketing pages.
 
 ### 4.4 Blank Layout
 
-Use for:
-
-- Login
-- Register
-- 403
-- 404
-- 500
+Use for login, register, 403, 404, and 500.
 
 Rules:
 
-- Keep authentication pages visually simple.
-- Show project name and clear form errors.
+- Keep auth pages simple and centered.
+- Avoid busy background illustrations.
+- Show project name, clear form errors, and one primary action.
 - Preserve `redirect` query after successful login.
 
 ## 5. Standard Page Template
 
-Every page should follow this order unless it is a special landing page.
+Every business page should follow this structure unless it is a special landing page.
 
 ```text
 PageView
@@ -213,18 +234,18 @@ PageView
 └── Dialog/Drawer components
 ```
 
-Use this mental template for page design:
+Design each page by answering:
 
-1. What is the page for?
-2. What does the user need to see first?
-3. What is the primary action?
-4. What filters or context are required?
+1. What is the page's main job?
+2. What must the user see first?
+3. What is the single most important action?
+4. Which filters are necessary, not just nice to have?
 5. What are the loading, empty, error, forbidden, and conflict states?
 6. What happens after each action succeeds?
 
 ## 6. Vue Page SFC Skeleton
 
-Use this shape for page-level Vue components:
+Use this shape for small page demos or initial page scaffolding:
 
 ```vue
 <script setup lang="ts">
@@ -241,16 +262,14 @@ async function loadPageData() {
 
   try {
     // Call typed API functions here.
-  } catch (error) {
+  } catch {
     errorMessage.value = '页面数据加载失败，请稍后重试'
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => {
-  loadPageData()
-})
+onMounted(loadPageData)
 </script>
 
 <template>
@@ -296,7 +315,7 @@ onMounted(() => {
 
 .page-title {
   margin: 0;
-  color: #1f2937;
+  color: #111827;
   font-size: 20px;
   font-weight: 600;
 }
@@ -313,6 +332,7 @@ onMounted(() => {
 }
 
 .page-card {
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
 }
 </style>
@@ -320,7 +340,7 @@ onMounted(() => {
 
 ## 7. Page Header Rules
 
-Every business page should have a clear header.
+Every business page should have a clear but quiet header.
 
 Header content:
 
@@ -329,14 +349,11 @@ Header content:
 - Primary action: at most one visually primary action.
 - Secondary actions: use normal buttons or dropdowns.
 
-Examples:
+Rules:
 
-| Page | Title | Description | Primary Action |
-| --- | --- | --- | --- |
-| Product list | 商品列表 | 管理当前店铺的 SPU、SKU 与上下架状态 | 新建商品 |
-| Inventory | 库存管理 | 查看 SKU 可用库存、锁定库存并处理入库 | 新增入库 |
-| Product review | 商品审核 | 审核商家提交的商品内容变更 | None |
-| Cart | 我的购物车 | 确认商品、数量和失效状态后进入结算 | 去结算 |
+- Do not use large hero banners for admin and merchant pages.
+- Do not put too many buttons in the page header.
+- If there are more than three actions, move secondary actions into a dropdown or page content area.
 
 ## 8. List Page Template
 
@@ -357,14 +374,13 @@ ListPage
 
 Rules:
 
-- Put search filters above the table in a card.
-- Use inline search for keyword and select controls for status.
+- Put filters above the table in a white card.
+- Keep filters to one row on desktop when possible.
 - Use server-side pagination for growing lists.
 - Keep table columns stable across pages of the same domain.
-- Put row actions at the right side.
+- Use row action buttons on the right.
 - More than three row actions should use `el-dropdown`.
 - Status columns should use a shared status tag component.
-- Amount columns should use a money display component or formatter.
 - Empty lists must show `el-empty` with a domain-specific description.
 
 Recommended list states:
@@ -372,11 +388,11 @@ Recommended list states:
 | State | UI |
 | --- | --- |
 | First loading | `v-loading` on content card |
-| Search loading | keep previous data, show table loading |
+| Search loading | Keep previous data and show table loading |
 | Empty | `el-empty` with clear text |
 | Error | `el-result` with retry button |
-| Forbidden | redirect to `/403` or show permission result |
-| Conflict after action | show warning and refresh data |
+| Forbidden | Redirect to `/403` or show permission result |
+| Conflict after action | Show warning and refresh data |
 
 ## 9. Detail Page Template
 
@@ -398,7 +414,7 @@ Rules:
 - Put business number, status, amount, owner/shop, and creation time in the summary card.
 - Use tabs only when detail content is large and naturally separable.
 - Use timeline for order, payment, inventory, review, and after-sale history.
-- All state-changing actions must use the latest backend response to refresh the page.
+- All state-changing actions must refresh from the latest backend response.
 - Do not optimistically change order, payment, inventory, or review status.
 
 ## 10. Form Page Template
@@ -447,11 +463,13 @@ Rules:
 
 - Dashboard data is for navigation and awareness, not final business judgment.
 - Metric cards should link to filtered list pages.
+- Use 3-4 metric cards at most in the first row.
 - Keep dashboard lightweight and avoid complex charts in MVP.
+- Use warning emphasis only for urgent items such as pending shipment or low stock.
 
-## 12. Buyer Commerce Components
+## 12. Component Rules
 
-Use consistent components for buyer pages:
+Buyer components:
 
 | Component | Purpose |
 | --- | --- |
@@ -463,16 +481,7 @@ Use consistent components for buyer pages:
 | `AddressCard` | Address display and selection |
 | `CheckoutSummary` | Amount summary and submit area |
 
-Buyer page rules:
-
-- Product cards should emphasize image, name, price, and stock.
-- Price color may use danger red, but do not overuse red elsewhere.
-- Checkout and payment pages must make final payable amount visually prominent.
-- Cart and checkout must clearly show invalid items and stock changes.
-
-## 13. Admin Components
-
-Use consistent components for merchant and platform pages:
+Merchant/admin components:
 
 | Component | Purpose |
 | --- | --- |
@@ -485,39 +494,44 @@ Use consistent components for merchant and platform pages:
 | `AuditResultDialog` | Approve/reject style dialogs |
 | `TimelinePanel` | Status history |
 
-Admin page rules:
+Rules:
 
-- Prefer tables over cards for management lists.
-- Align row actions consistently on the right.
-- Use tag colors consistently for statuses.
-- Do not hide failed, rejected, or cancelled states in neutral gray if they require attention.
+- Reuse shared components before inventing new page-specific UI.
+- Keep components visually quiet by default.
+- Use icons only when they improve recognition.
+- Avoid decorative icons in every metric card.
 
-## 14. Status Color Rules
+## 13. Status Color Rules
 
-Use consistent colors for business states:
+Use color for meaning, not decoration.
 
 | Semantic | Color | Examples |
 | --- | --- | --- |
 | Success | green | paid, completed, enabled, approved |
-| Warning | orange | pending payment, pending review, pending shipment, low stock |
+| Warning | amber | pending payment, pending review, pending shipment, low stock |
 | Danger | red | rejected, failed, cancelled, banned, closed |
-| Info | blue/gray | draft, off shelf, created, processing |
+| Info | gray/blue | draft, off shelf, created, processing |
 
-Status labels should come from shared constant maps, not hard-coded in templates.
+Rules:
 
-## 15. Interaction Rules
+- Use soft tag backgrounds and readable text.
+- Do not use saturated filled tags unless the state is critical.
+- Avoid showing many bright tags in the same table row.
+- Status labels come from shared constant maps, not hard-coded templates.
 
-- Primary button: one per page section when possible.
-- Dangerous actions: use danger style and confirmation dialog.
-- State-changing actions: show loading and prevent duplicate clicks.
-- Idempotent actions: reuse the same idempotency key for retry of the same action.
-- Success after create: navigate to detail page when the created resource is important.
-- Success after update: stay on current page and refresh data.
-- Success after delete: return to list or remove row from list after backend success.
-- Conflict: show warning, refresh latest data, ask user to retry.
-- Permission denied: hide impossible actions, still handle backend 403.
+## 14. Interaction Rules
 
-## 16. Empty, Error, Loading, And Permission States
+- One primary button per page section when possible.
+- Dangerous actions use danger style and confirmation dialog.
+- State-changing actions show loading and prevent duplicate clicks.
+- Idempotent actions reuse the same idempotency key for retry of the same action.
+- Success after create navigates to detail page when the created resource is important.
+- Success after update stays on current page and refreshes data.
+- Success after delete returns to list or removes row after backend success.
+- Conflict shows warning, refreshes latest data, and asks user to retry.
+- Permission denied hides impossible actions, but still handles backend 403.
+
+## 15. Empty, Error, Loading, And Permission States
 
 Every remote-data page must handle:
 
@@ -541,7 +555,7 @@ Recommended copy examples:
 | Conflict | 数据已发生变化，已为你刷新最新内容 |
 | Forbidden | 当前账号无权访问该页面 |
 
-## 17. Navigation And Route Design
+## 16. Navigation And Route Design
 
 Route groups:
 
@@ -587,6 +601,19 @@ Rules:
 - Use route query for shareable filters such as keyword, status, page, and pageSize.
 - Do not store list filters only in component local state if users need browser back/forward behavior.
 
+## 17. Comfortable UI Checklist
+
+Before finishing a page, check:
+
+- Is there only one obvious primary action?
+- Can the user identify the page purpose within 3 seconds?
+- Are cards separated by whitespace rather than heavy shadows?
+- Are table rows readable without too much color?
+- Are urgent states visible without making the whole page stressful?
+- Are filters necessary and not excessive?
+- Are empty/error states clear and calm?
+- Does the page still look usable after 30 minutes of operation work?
+
 ## 18. Collaboration Rules
 
 Before building a new page, define:
@@ -624,6 +651,7 @@ Use this checklist before accepting a page:
 - Actions refresh from backend response after success.
 - Destructive or important state-changing actions use confirmation.
 - Styles are scoped or use approved global tokens.
+- Visual style is calm, low-noise, and suitable for long-session work.
 
 ## 20. When To Push Back
 
@@ -635,5 +663,6 @@ Ask for clarification before implementation if:
 - A page mixes buyer, merchant, and platform responsibilities.
 - The requested UI style conflicts with project consistency.
 - A custom component is requested but Element Plus already covers the need.
+- The design introduces visual noise without improving usability.
 
-When uncertain, choose the simplest page structure that supports the business flow and follows existing project style.
+When uncertain, choose the simplest, quietest page structure that supports the business flow and follows existing project style.
