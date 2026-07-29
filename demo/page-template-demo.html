@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>时光商城页面模板 Demo</title>
+  <style>
+    :root {
+      --color-primary: #1e6bff;
+      --color-primary-hover: #3f82ff;
+      --color-success: #16a34a;
+      --color-warning: #f59e0b;
+      --color-danger: #dc2626;
+      --color-info: #64748b;
+      --color-text-primary: #1f2937;
+      --color-text-regular: #4b5563;
+      --color-text-secondary: #6b7280;
+      --color-border: #e5e7eb;
+      --color-page-bg: #f5f7fa;
+      --color-card-bg: #ffffff;
+      --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.06);
+      --radius-card: 10px;
+      --radius-control: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--color-page-bg);
+      color: var(--color-text-primary);
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      font-size: 14px;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .top-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: 64px;
+      border-bottom: 1px solid var(--color-border);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+    }
+
+    .top-header__inner {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .brand__mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1e6bff, #7aa7ff);
+      color: #fff;
+      place-items: center;
+    }
+
+    .search-box {
+      display: flex;
+      flex: 1;
+      max-width: 520px;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: #fff;
+    }
+
+    .search-box input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: none;
+      padding: 10px 16px;
+      color: var(--color-text-primary);
+    }
+
+    .search-box button {
+      border: 0;
+      background: var(--color-primary);
+      color: #fff;
+      padding: 0 20px;
+      cursor: pointer;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-left: auto;
+      color: var(--color-text-regular);
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 24px;
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 24px 40px;
+    }
+
+    .side-menu {
+      position: sticky;
+      top: 88px;
+      align-self: start;
+      padding: 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      background: var(--color-card-bg);
+      box-shadow: var(--shadow-card);
+    }
+
+    .side-menu__title {
+      margin: 8px 8px 12px;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+    }
+
+    .side-menu__item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 12px;
+      border-radius: var(--radius-control);
+      color: var(--color-text-regular);
+      cursor: pointer;
+    }
+
+    .side-menu__item + .side-menu__item {
+      margin-top: 4px;
+    }
+
+    .side-menu__item.is-active {
+      background: #eaf1ff;
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .main {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .page-title {
+      margin: 0;
+      color: var(--color-text-primary);
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .page-description {
+      margin: 8px 0 0;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+    }
+
+    .page-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .button {
+      height: 36px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-control);
+      background: #fff;
+      color: var(--color-text-regular);
+      padding: 0 14px;
+      cursor: pointer;
+    }
+
+    .button--primary {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    .button--primary:hover {
+      background: var(--color-primary-hover);
+    }
+
+    .card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      background: var(--color-card-bg);
+      box-shadow: var(--shadow-card);
+    }
+
+    .search-panel {
+      display: grid;
+      grid-template-columns: 1.5fr repeat(3, 1fr) auto;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--color-text-secondary);
+      font-size: 12px;
+    }
+
+    .field input,
+    .field select {
+      height: 36px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-control);
+      outline: none;
+      padding: 0 10px;
+      color: var(--color-text-primary);
+      background: #fff;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .metric-card {
+      padding: 18px;
+    }
+
+    .metric-card__label {
+      color: var(--color-text-secondary);
+      font-size: 13px;
+    }
+
+    .metric-card__value {
+      margin-top: 10px;
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .metric-card__note {
+      margin-top: 8px;
+      color: var(--color-info);
+      font-size: 12px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+    }
+
+    .card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .card__title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .product-card {
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .product-card__image {
+      height: 118px;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.9), transparent 26%),
+        linear-gradient(135deg, #dbeafe, #eff6ff 45%, #bfdbfe);
+    }
+
+    .product-card:nth-child(2) .product-card__image {
+      background:
+        radial-gradient(circle at 72% 24%, rgba(255, 255, 255, 0.9), transparent 24%),
+        linear-gradient(135deg, #dcfce7, #f0fdf4 48%, #bbf7d0);
+    }
+
+    .product-card:nth-child(3) .product-card__image {
+      background:
+        radial-gradient(circle at 40% 28%, rgba(255, 255, 255, 0.9), transparent 24%),
+        linear-gradient(135deg, #fef3c7, #fffbeb 48%, #fde68a);
+    }
+
+    .product-card__body {
+      padding: 12px;
+    }
+
+    .product-card__name {
+      font-weight: 600;
+    }
+
+    .product-card__desc {
+      margin-top: 6px;
+      color: var(--color-text-secondary);
+      font-size: 12px;
+    }
+
+    .product-card__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+
+    .money {
+      color: var(--color-danger);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      border-radius: 999px;
+      padding: 0 9px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-tag--success {
+      background: #dcfce7;
+      color: var(--color-success);
+    }
+
+    .status-tag--warning {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .status-tag--danger {
+      background: #fee2e2;
+      color: var(--color-danger);
+    }
+
+    .status-tag--info {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--color-border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f8fafc;
+      color: var(--color-text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    td {
+      color: var(--color-text-regular);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .table-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .link-button {
+      border: 0;
+      background: transparent;
+      color: var(--color-primary);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .checkout-card {
+      padding: 18px;
+    }
+
+    .checkout-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      color: var(--color-text-regular);
+    }
+
+    .checkout-total {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .checkout-total .money {
+      font-size: 26px;
+    }
+
+    .empty-state {
+      display: grid;
+      min-height: 148px;
+      color: var(--color-text-secondary);
+      place-items: center;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side-menu {
+        position: static;
+      }
+
+      .search-panel,
+      .metric-grid,
+      .content-grid,
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .top-header__inner {
+        flex-wrap: wrap;
+        height: auto;
+        padding-block: 12px;
+      }
+
+      .top-header {
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="top-header">
+    <div class="top-header__inner">
+      <div class="brand">
+        <span class="brand__mark">时</span>
+        <span>时光商城</span>
+      </div>
+
+      <div class="search-box">
+        <input value="示例手机" aria-label="搜索商品">
+        <button type="button">搜索</button>
+      </div>
+
+      <nav class="header-nav" aria-label="顶部导航">
+        <span>商品</span>
+        <span>购物车</span>
+        <span>订单</span>
+        <span>buyer_a</span>
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="side-menu">
+      <div class="side-menu__title">页面模板 Demo</div>
+      <div class="side-menu__item is-active">买家商城 <span>3</span></div>
+      <div class="side-menu__item">商家工作台 <span>5</span></div>
+      <div class="side-menu__item">平台后台 <span>4</span></div>
+      <div class="side-menu__item">错误状态 <span>2</span></div>
+    </aside>
+
+    <main class="main">
+      <section class="page-header">
+        <div>
+          <h1 class="page-title">商品与订单工作台</h1>
+          <p class="page-description">演示统一页面头部、筛选卡片、数据卡片、状态标签、金额展示和管理表格。</p>
+        </div>
+        <div class="page-actions">
+          <button class="button">导出示例</button>
+          <button class="button button--primary">新建商品</button>
+        </div>
+      </section>
+
+      <section class="card search-panel" aria-label="搜索筛选">
+        <div class="field">
+          <label for="keyword">关键词</label>
+          <input id="keyword" value="示例手机">
+        </div>
+        <div class="field">
+          <label for="status">商品状态</label>
+          <select id="status">
+            <option>全部状态</option>
+            <option>已上架</option>
+            <option>待审核</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="shop">店铺</label>
+          <select id="shop">
+            <option>时光数码店</option>
+            <option>时光生活馆</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="stock">库存</label>
+          <select id="stock">
+            <option>全部</option>
+            <option>有库存</option>
+            <option>低库存</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="button button--primary">查询</button>
+        </div>
+      </section>
+
+      <section class="metric-grid">
+        <article class="card metric-card">
+          <div class="metric-card__label">今日待发货</div>
+          <div class="metric-card__value">18</div>
+          <div class="metric-card__note">点击进入订单筛选</div>
+        </article>
+        <article class="card metric-card">
+          <div class="metric-card__label">待审核商品</div>
+          <div class="metric-card__value">6</div>
+          <div class="metric-card__note">平台审核员处理</div>
+        </article>
+        <article class="card metric-card">
+          <div class="metric-card__label">低库存 SKU</div>
+          <div class="metric-card__value">9</div>
+          <div class="metric-card__note">建议及时入库</div>
+        </article>
+        <article class="card metric-card">
+          <div class="metric-card__label">今日支付金额</div>
+          <div class="metric-card__value">¥ 42,318.00</div>
+          <div class="metric-card__note">金额仅作展示，后端为准</div>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <article class="card">
+          <div class="card__header">
+            <div class="card__title">买家商品卡片</div>
+            <span class="status-tag status-tag--success">ON_SHELF</span>
+          </div>
+          <div class="product-grid">
+            <div class="product-card">
+              <div class="product-card__image"></div>
+              <div class="product-card__body">
+                <div class="product-card__name">示例手机 Pro</div>
+                <div class="product-card__desc">黑色 / 256GB / 有库存</div>
+                <div class="product-card__footer">
+                  <span class="money">¥3999.00</span>
+                  <span class="status-tag status-tag--success">可购买</span>
+                </div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-card__image"></div>
+              <div class="product-card__body">
+                <div class="product-card__name">时光耳机 Air</div>
+                <div class="product-card__desc">主动降噪 / 低库存</div>
+                <div class="product-card__footer">
+                  <span class="money">¥699.00</span>
+                  <span class="status-tag status-tag--warning">低库存</span>
+                </div>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-card__image"></div>
+              <div class="product-card__body">
+                <div class="product-card__name">智能手表 S</div>
+                <div class="product-card__desc">待平台审核</div>
+                <div class="product-card__footer">
+                  <span class="money">¥1299.00</span>
+                  <span class="status-tag status-tag--info">待审核</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="card checkout-card">
+          <div class="card__title">结算摘要</div>
+          <div class="checkout-row"><span>商品金额</span><strong>¥4698.00</strong></div>
+          <div class="checkout-row"><span>运费</span><strong>¥0.00</strong></div>
+          <div class="checkout-row"><span>优惠券</span><strong>-¥50.00</strong></div>
+          <div class="checkout-row"><span>库存状态</span><span class="status-tag status-tag--success">校验通过</span></div>
+          <div class="checkout-total">
+            <div class="checkout-row"><span>应付金额</span><span class="money">¥4648.00</span></div>
+          </div>
+          <button class="button button--primary" style="width: 100%; margin-top: 18px;">提交订单</button>
+        </article>
+      </section>
+
+      <section class="card">
+        <div class="card__header">
+          <div>
+            <div class="card__title">商家订单列表</div>
+            <p class="page-description">表格页示例：右侧操作、状态标签、金额列和分页区域。</p>
+          </div>
+          <button class="button">刷新</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>订单号</th>
+              <th>买家</th>
+              <th>状态</th>
+              <th>支付金额</th>
+              <th>创建时间</th>
+              <th style="text-align: right;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ORDER202607290001</td>
+              <td>buyer_a</td>
+              <td><span class="status-tag status-tag--warning">待发货</span></td>
+              <td><strong>¥3999.00</strong></td>
+              <td>2026-07-29 10:24</td>
+              <td><div class="table-actions"><button class="link-button">详情</button><button class="link-button">发货</button></div></td>
+            </tr>
+            <tr>
+              <td>ORDER202607290002</td>
+              <td>buyer_b</td>
+              <td><span class="status-tag status-tag--info">待收货</span></td>
+              <td><strong>¥699.00</strong></td>
+              <td>2026-07-29 09:12</td>
+              <td><div class="table-actions"><button class="link-button">详情</button><button class="link-button">物流</button></div></td>
+            </tr>
+            <tr>
+              <td>ORDER202607280018</td>
+              <td>buyer_a</td>
+              <td><span class="status-tag status-tag--danger">已取消</span></td>
+              <td><strong>¥1299.00</strong></td>
+              <td>2026-07-28 18:03</td>
+              <td><div class="table-actions"><button class="link-button">详情</button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card empty-state">
+        <div>
+          <strong>空状态示例</strong>
+          <p>暂无商品，请调整筛选条件。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
