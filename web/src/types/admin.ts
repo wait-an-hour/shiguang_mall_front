@@ -33,6 +33,7 @@ export interface PlatformUser {
 export interface PlatformAccount extends PlatformUser {
   phone: string
   ownerShopName?: string
+  ownerShopNames?: string[]
   createdAt: Timestamp
 }
 

@@ -14,9 +14,10 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["web/src/*"]
     },
     "types": ["vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "vite.config.ts"]
+  "include": ["web/src/**/*.ts", "web/src/**/*.d.ts", "web/src/**/*.tsx", "web/src/**/*.vue", "web/vite.config.ts"],
+  "exclude": ["src"]
 }

@@ -23,9 +23,32 @@ const menus = [
 
 const visibleMenus = computed(() => menus.filter((item) => auth.hasPermissions([item.permission])))
 
+const adminOptions = [
+  { username: 'admin', displayName: '平台管理员' },
+  { username: 'operation', displayName: '运营管理员' },
+  { username: 'audit', displayName: '售后审核员' }
+]
+
+function switchAdmin(username: string) {
+  // 切换管理员必须重新输入目标账号密码，避免仅靠前端下拉直接越权切换权限。
+  auth.clearSession()
+  router.replace({ path: '/login', query: { admin: username, redirect: '/admin' } })
+}
+
 function logout() {
   auth.clearSession()
   router.replace('/login')
+}
+
+function handleAccountCommand(command: string) {
+  if (command === 'logout') {
+    logout()
+    return
+  }
+
+  if (command.startsWith('switch:')) {
+    switchAdmin(command.replace('switch:', ''))
+  }
 }
 </script>
 
@@ -40,9 +63,7 @@ function logout() {
         </div>
       </div>
       <div class="platform-context">
-        <div class="context-label">当前后台域</div>
-        <div class="context-name">平台管理员端</div>
-        <div class="context-meta">与商家端权限隔离</div>
+        <div class="context-name">{{ auth.user?.displayName }}端</div>
       </div>
       <nav class="menu">
         <router-link v-for="item in visibleMenus" :key="item.path" class="menu-item" :class="{ 'is-active': route.path === item.path }" :to="item.path">{{ item.title }}</router-link>
@@ -55,14 +76,17 @@ function logout() {
           <el-breadcrumb-item>平台后台</el-breadcrumb-item>
           <el-breadcrumb-item>{{ route.meta.title }}</el-breadcrumb-item>
         </el-breadcrumb>
-        <el-dropdown @command="logout">
+        <el-dropdown @command="handleAccountCommand">
           <span class="account">
             <span class="avatar">{{ auth.user?.displayName?.slice(0, 1) }}</span>
             {{ auth.user?.displayName }}
             <el-icon><ArrowDown /></el-icon>
           </span>
           <template #dropdown>
-            <el-dropdown-menu><el-dropdown-item command="logout">退出登录</el-dropdown-item></el-dropdown-menu>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="admin in adminOptions" :key="admin.username" :command="`switch:${admin.username}`" :disabled="admin.username === auth.user?.username">切换到{{ admin.displayName }}</el-dropdown-item>
+              <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
           </template>
         </el-dropdown>
       </header>
@@ -77,9 +101,9 @@ function logout() {
 .brand { display: flex; align-items: center; gap: 10px; height: 64px; padding: 0 20px; border-bottom: 1px solid var(--sg-divider); }
 .brand-logo { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; }
 .brand-title { font-size: 16px; font-weight: 600; }
-.brand-subtitle, .context-label, .context-meta { color: var(--sg-text-muted); font-size: 12px; }
+.brand-subtitle { color: var(--sg-text-muted); font-size: 12px; }
 .platform-context { margin: 16px; padding: 14px; border: 1px solid var(--sg-border); border-radius: var(--sg-radius-card); background: #fafafa; }
-.context-name { margin-top: 4px; font-weight: 600; }
+.context-name { font-weight: 600; }
 .menu { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; }
 .menu-item { min-height: 40px; padding: 0 12px; border-radius: 8px; color: var(--sg-text-regular); line-height: 40px; }
 .menu-item.is-active { background: var(--sg-primary-soft); color: var(--sg-primary); font-weight: 600; }

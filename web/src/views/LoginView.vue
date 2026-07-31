@@ -7,7 +7,7 @@ import { ROUTE_NAME } from '@/constants/routes'
 import { useAdminAuthStore } from '@/stores/adminAuth'
 import type { PlatformUser } from '@/types/admin'
 
-type LoginRole = 'SUPER_ADMIN' | 'MERCHANT'
+type LoginRole = 'ADMIN' | 'MERCHANT'
 
 interface LoginForm {
   role: LoginRole
@@ -20,10 +20,67 @@ const router = useRouter()
 const adminAuth = useAdminAuthStore()
 const loading = ref(false)
 
+const adminAccounts: Record<string, { password: string; user: PlatformUser }> = {
+  admin: {
+    password: 'admin123',
+    user: {
+      id: 'mock-admin',
+      username: 'admin',
+      displayName: '平台管理员',
+      role: 'SUPER_ADMIN',
+      permissions: [
+        'admin:dashboard:view',
+        'admin:rbac:role',
+        'admin:rbac:account',
+        'admin:catalog:category',
+        'admin:catalog:brand',
+        'admin:product:view',
+        'admin:product:audit',
+        'admin:inventory:view',
+        'admin:order:view',
+        'admin:after-sale:audit'
+      ],
+      status: 'ACTIVE'
+    }
+  },
+  operation: {
+    password: 'operation123',
+    user: {
+      id: 'mock-operation',
+      username: 'operation',
+      displayName: '运营管理员',
+      role: 'OPERATION_ADMIN',
+      permissions: [
+        'admin:dashboard:view',
+        'admin:catalog:category',
+        'admin:catalog:brand',
+        'admin:product:view',
+        'admin:product:audit',
+        'admin:inventory:view',
+        'admin:order:view'
+      ],
+      status: 'ACTIVE'
+    }
+  },
+  audit: {
+    password: 'audit123',
+    user: {
+      id: 'mock-audit',
+      username: 'audit',
+      displayName: '售后审核员',
+      role: 'AUDIT_ADMIN',
+      permissions: ['admin:dashboard:view', 'admin:order:view', 'admin:after-sale:audit'],
+      status: 'ACTIVE'
+    }
+  }
+}
+
+const selectedAdmin = typeof route.query.admin === 'string' && adminAccounts[route.query.admin] ? route.query.admin : 'admin'
+
 const form = reactive<LoginForm>({
-  role: 'SUPER_ADMIN',
-  username: 'admin',
-  password: 'admin123'
+  role: 'ADMIN',
+  username: selectedAdmin,
+  password: ''
 })
 
 const rules: FormRules<LoginForm> = {
@@ -38,32 +95,12 @@ const rules: FormRules<LoginForm> = {
   ]
 }
 
-function createMockAdminUser(): PlatformUser {
-  // 登录页只做前端演示鉴权：管理员身份写入管理端独立 store，避免影响商家端 mock auth。
-  return {
-    id: 'mock-admin',
-    username: form.username,
-    displayName: '平台管理员',
-    role: 'SUPER_ADMIN',
-    permissions: [
-      'admin:dashboard:view',
-      'admin:rbac:role',
-      'admin:rbac:account',
-      'admin:catalog:category',
-      'admin:catalog:brand',
-      'admin:product:view',
-      'admin:product:audit',
-      'admin:inventory:view',
-      'admin:order:view',
-      'admin:after-sale:audit'
-    ],
-    status: 'ACTIVE'
-  }
+function getAdminUser() {
+  const account = adminAccounts[form.username]
+  return account && account.password === form.password ? account.user : null
 }
 
-function validateMockAccount() {
-  // Mock 账号规则保持简单明确，方便课堂演示：管理员 admin/admin123，商家 merchant/merchant123。
-  if (form.role === 'SUPER_ADMIN') return form.username === 'admin' && form.password === 'admin123'
+function isMerchantAccount() {
   return form.username === 'merchant' && form.password === 'merchant123'
 }
 
@@ -71,16 +108,19 @@ async function submit() {
   loading.value = true
   try {
     await new Promise((resolve) => window.setTimeout(resolve, 240))
-    if (!validateMockAccount()) throw new Error('账号、密码或身份选择不正确')
 
     if (form.role === 'MERCHANT') {
+      if (!isMerchantAccount()) throw new Error('商家账号或密码不正确')
       ElMessage.success('登录成功')
       await router.replace({ name: ROUTE_NAME.MerchantEntry })
       return
     }
 
-    const token = `mock-token-${form.role.toLowerCase()}-${Date.now()}`
-    adminAuth.setSession(token, createMockAdminUser())
+    const adminUser = getAdminUser()
+    if (!adminUser) throw new Error('管理员账号或密码不正确')
+
+    const token = `mock-token-${adminUser.role.toLowerCase()}-${Date.now()}`
+    adminAuth.setSession(token, adminUser)
     ElMessage.success('登录成功')
     await router.replace(String(route.query.redirect || '/admin'))
   } catch (error) {
@@ -105,15 +145,15 @@ async function submit() {
       <el-form :model="form" :rules="rules" label-position="top" @keyup.enter="submit">
         <el-form-item label="登录身份" prop="role">
           <el-radio-group v-model="form.role">
-            <el-radio-button label="SUPER_ADMIN">管理员</el-radio-button>
+            <el-radio-button label="ADMIN">管理员</el-radio-button>
             <el-radio-button label="MERCHANT">商家</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="账号" prop="username">
-          <el-input v-model="form.username" clearable placeholder="管理员 admin；商家 merchant" />
+          <el-input v-model="form.username" clearable placeholder="管理员 admin/operation/audit；商家 merchant" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" show-password placeholder="管理员 admin123；商家 merchant123" />
+          <el-input v-model="form.password" type="password" show-password placeholder="admin123 / operation123 / audit123 / merchant123" />
         </el-form-item>
         <el-button type="primary" :loading="loading" class="auth-button" @click="submit">登录</el-button>
       </el-form>

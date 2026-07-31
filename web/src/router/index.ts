@@ -23,7 +23,7 @@ const adminRouteMeta = {
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: { name: ROUTE_NAME.MerchantEntry }
+    redirect: { name: ROUTE_NAME.Login }
   },
   {
     path: '/login',

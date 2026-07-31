@@ -40,8 +40,9 @@ export const useAdminAuthStore = defineStore('adminAuth', () => {
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  function hasPermissions(required: PermissionCode[] = []) {
-    return required.every((item) => permissions.value.includes(item))
+  function hasPermissions(required: string[] = []) {
+    // 路由 meta 中的权限来自管理员与商家两套路由，先按字符串接收；管理员校验时只和当前管理员权限码做匹配。
+    return required.every((item) => permissions.value.includes(item as PermissionCode))
   }
 
   return { token, user, isLoggedIn, role, permissions, setSession, clearSession, hasPermissions }
