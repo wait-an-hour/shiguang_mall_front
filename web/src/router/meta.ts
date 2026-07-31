@@ -1,4 +1,4 @@
-export type AppLayout = 'merchant' | 'blank'
+export type AppLayout = 'merchant' | 'admin' | 'blank'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -6,6 +6,7 @@ declare module 'vue-router' {
     layout: AppLayout
     requiresAuth?: boolean
     permissions?: string[]
+    role?: string
     shopScoped?: boolean
   }
 }

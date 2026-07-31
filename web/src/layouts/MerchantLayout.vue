@@ -65,7 +65,18 @@ const menuItems = computed(() => [
   }
 ].filter((item) => item.visible))
 
-const activeMenu = computed(() => String(route.name || ROUTE_NAME.MerchantDashboard))
+const parentMenuByRouteName: Record<string, string> = {
+  [ROUTE_NAME.MerchantProductCreate]: ROUTE_NAME.MerchantProductList,
+  [ROUTE_NAME.MerchantProductDetail]: ROUTE_NAME.MerchantProductList,
+  [ROUTE_NAME.MerchantProductEdit]: ROUTE_NAME.MerchantProductList,
+  [ROUTE_NAME.MerchantInventoryDetail]: ROUTE_NAME.MerchantInventoryList,
+  [ROUTE_NAME.MerchantInventoryTransactions]: ROUTE_NAME.MerchantInventoryList
+}
+
+const activeMenu = computed(() => {
+  const routeName = String(route.name || ROUTE_NAME.MerchantDashboard)
+  return parentMenuByRouteName[routeName] ?? routeName
+})
 
 function openMenu(routeName: string) {
   router.push({ name: routeName, params: { shopId: shopId.value } })
