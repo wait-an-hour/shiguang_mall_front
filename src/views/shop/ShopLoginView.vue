@@ -1,2 +1,0 @@
-<template><main class="shop-login"><el-card class="sg-card" shadow="never"><h1>商家登录占位</h1><p>此入口仅用于演示 /shop 与 /admin 的权限隔离，请在管理员登录页使用 merchant / merchant123 测试跳转。</p><router-link to="/admin/login"><el-button type="primary">返回管理员登录页</el-button></router-link></el-card></main></template>
-<style scoped lang="scss">.shop-login{display:grid;min-height:100vh;place-items:center;padding:24px;}h1{margin-top:0;}p{color:var(--sg-text-secondary);}</style>
