@@ -2,7 +2,7 @@
 import { computed, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { Box, Goods, List, Operation } from '@element-plus/icons-vue'
-import { ORDER_STATUS_LABELS } from '../../constants/merchant'
+import { RECENT_ORDER_STATUS_LABELS } from '../../constants/merchant'
 import { ROUTE_NAME } from '../../constants/routes'
 import { useMerchantStore } from '../../stores/merchant'
 import type { DashboardTask, LowStockSku, RecentMerchantOrder } from '../../types/merchant'
@@ -95,7 +95,7 @@ const recentOrders = shallowRef<RecentMerchantOrder[]>([
     orderNo: 'SO202607310002',
     buyerName: '陈老师',
     amount: '268.00',
-    status: 'SHIPPED',
+    status: 'PENDING_RECEIPT',
     createdAt: '2026-07-31T08:18:46.000+08:00'
   },
   {
@@ -137,7 +137,7 @@ const shopName = computed(() => merchantStore.currentShop?.name ?? '当前店铺
 const canCreateProduct = computed(() => merchantStore.isShopActive)
 
 function getOrderStatusLabel(status: RecentMerchantOrder['status']) {
-  return ORDER_STATUS_LABELS[status]
+  return RECENT_ORDER_STATUS_LABELS[status]
 }
 
 function goRoute(routeName: string, query?: Record<string, string>) {

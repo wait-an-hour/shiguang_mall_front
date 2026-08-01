@@ -70,7 +70,9 @@ const parentMenuByRouteName: Record<string, string> = {
   [ROUTE_NAME.MerchantProductDetail]: ROUTE_NAME.MerchantProductList,
   [ROUTE_NAME.MerchantProductEdit]: ROUTE_NAME.MerchantProductList,
   [ROUTE_NAME.MerchantInventoryDetail]: ROUTE_NAME.MerchantInventoryList,
-  [ROUTE_NAME.MerchantInventoryTransactions]: ROUTE_NAME.MerchantInventoryList
+  [ROUTE_NAME.MerchantInventoryTransactions]: ROUTE_NAME.MerchantInventoryList,
+  [ROUTE_NAME.MerchantOrderDetail]: ROUTE_NAME.MerchantOrderList,
+  [ROUTE_NAME.MerchantAfterSaleDetail]: ROUTE_NAME.MerchantAfterSaleList
 }
 
 const activeMenu = computed(() => {
@@ -84,6 +86,12 @@ function openMenu(routeName: string) {
 
 function switchShop() {
   router.push({ name: ROUTE_NAME.MerchantShopSelect })
+}
+
+function logout() {
+  authStore.clearSession()
+  merchantStore.setCurrentShop(null)
+  router.replace({ name: ROUTE_NAME.Login })
 }
 </script>
 
@@ -125,6 +133,7 @@ function switchShop() {
         <div class="topbar-actions">
           <el-button :icon="Switch" plain @click="switchShop">切换店铺</el-button>
           <span class="user-name">{{ currentUser?.displayName }}</span>
+          <el-button plain @click="logout">退出登录</el-button>
         </div>
       </header>
 

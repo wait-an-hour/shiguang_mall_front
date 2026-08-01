@@ -1,4 +1,16 @@
-import type { EnabledStatus, InventoryTransactionType, ProductStatus, ShopStatus, StockState } from '../types/merchant'
+import type {
+  AfterSaleStatus,
+  AfterSaleType,
+  EnabledStatus,
+  InventoryTransactionType,
+  OrderPaymentStatus,
+  OrderStatus,
+  ProductStatus,
+  RefundStatus,
+  ShopStatus,
+  StockState,
+  RecentMerchantOrder
+} from '../types/merchant'
 
 export const SHOP_PERMISSION = {
   ProductManage: 'shop:product:manage',
@@ -23,12 +35,84 @@ export const SHOP_STATUS_TAG_TYPES: Record<ShopStatus, 'info' | 'success' | 'war
   CLOSED: 'info'
 }
 
-export const ORDER_STATUS_LABELS = {
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  PENDING_PAYMENT: '待付款',
   PENDING_SHIPMENT: '待发货',
-  SHIPPED: '已发货',
+  PENDING_RECEIPT: '待收货',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消'
+}
+
+export const RECENT_ORDER_STATUS_LABELS: Record<RecentMerchantOrder['status'], string> = {
+  PENDING_SHIPMENT: '待发货',
+  PENDING_RECEIPT: '待收货',
   COMPLETED: '已完成',
   AFTER_SALE: '售后中'
-} as const
+}
+
+export const ORDER_STATUS_TAG_TYPES: Record<OrderStatus, 'info' | 'success' | 'warning' | 'danger'> = {
+  PENDING_PAYMENT: 'warning',
+  PENDING_SHIPMENT: 'warning',
+  PENDING_RECEIPT: 'info',
+  COMPLETED: 'success',
+  CANCELLED: 'danger'
+}
+
+export const ORDER_PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = {
+  UNPAID: '未支付',
+  PAID: '已支付',
+  PARTIALLY_REFUNDED: '部分退款',
+  REFUNDED: '已退款'
+}
+
+export const ORDER_PAYMENT_STATUS_TAG_TYPES: Record<OrderPaymentStatus, 'info' | 'success' | 'warning' | 'danger'> = {
+  UNPAID: 'warning',
+  PAID: 'success',
+  PARTIALLY_REFUNDED: 'warning',
+  REFUNDED: 'info'
+}
+
+export const AFTER_SALE_TYPE_LABELS: Record<AfterSaleType, string> = {
+  REFUND_ONLY: '仅退款',
+  RETURN_REFUND: '退货退款'
+}
+
+export const AFTER_SALE_TYPE_TAG_TYPES: Record<AfterSaleType, 'info' | 'success' | 'warning' | 'danger'> = {
+  REFUND_ONLY: 'info',
+  RETURN_REFUND: 'warning'
+}
+
+export const AFTER_SALE_STATUS_LABELS: Record<AfterSaleStatus, string> = {
+  PENDING: '待审核',
+  REJECTED: '已拒绝',
+  WAITING_RETURN: '待退货',
+  REFUNDING: '退款中',
+  COMPLETED: '已完成',
+  CANCELLED: '已取消'
+}
+
+export const AFTER_SALE_STATUS_TAG_TYPES: Record<AfterSaleStatus, 'info' | 'success' | 'warning' | 'danger'> = {
+  PENDING: 'warning',
+  REJECTED: 'danger',
+  WAITING_RETURN: 'warning',
+  REFUNDING: 'warning',
+  COMPLETED: 'success',
+  CANCELLED: 'info'
+}
+
+export const REFUND_STATUS_LABELS: Record<RefundStatus, string> = {
+  NOT_STARTED: '未开始',
+  PROCESSING: '处理中',
+  SUCCESS: '成功',
+  FAILED: '失败'
+}
+
+export const REFUND_STATUS_TAG_TYPES: Record<RefundStatus, 'info' | 'success' | 'warning' | 'danger'> = {
+  NOT_STARTED: 'info',
+  PROCESSING: 'warning',
+  SUCCESS: 'success',
+  FAILED: 'danger'
+}
 
 export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = {
   DRAFT: '草稿',

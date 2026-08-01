@@ -13,6 +13,10 @@ const merchantProductDetail = () => import('@/views/merchant/product/MerchantPro
 const merchantInventoryList = () => import('@/views/merchant/inventory/MerchantInventoryListView.vue')
 const merchantInventoryDetail = () => import('@/views/merchant/inventory/MerchantInventoryDetailView.vue')
 const merchantInventoryTransactions = () => import('@/views/merchant/inventory/MerchantInventoryTransactionsView.vue')
+const merchantOrderList = () => import('@/views/merchant/order/MerchantOrderListView.vue')
+const merchantOrderDetail = () => import('@/views/merchant/order/MerchantOrderDetailView.vue')
+const merchantAfterSaleList = () => import('@/views/merchant/afterSale/MerchantAfterSaleListView.vue')
+const merchantAfterSaleDetail = () => import('@/views/merchant/afterSale/MerchantAfterSaleDetailView.vue')
 
 const adminRouteMeta = {
   layout: 'admin',
@@ -183,7 +187,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'orders',
         name: ROUTE_NAME.MerchantOrderList,
-        component: merchantPlaceholder,
+        component: merchantOrderList,
         meta: {
           title: '订单履约',
           layout: 'merchant',
@@ -193,11 +197,35 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'orders/:orderId',
+        name: ROUTE_NAME.MerchantOrderDetail,
+        component: merchantOrderDetail,
+        meta: {
+          title: '订单详情',
+          layout: 'merchant',
+          requiresAuth: true,
+          shopScoped: true,
+          permissions: [SHOP_PERMISSION.OrderRead]
+        }
+      },
+      {
         path: 'after-sales',
         name: ROUTE_NAME.MerchantAfterSaleList,
-        component: merchantPlaceholder,
+        component: merchantAfterSaleList,
         meta: {
           title: '售后处理',
+          layout: 'merchant',
+          requiresAuth: true,
+          shopScoped: true,
+          permissions: [SHOP_PERMISSION.AfterSaleManage]
+        }
+      },
+      {
+        path: 'after-sales/:afterSaleId',
+        name: ROUTE_NAME.MerchantAfterSaleDetail,
+        component: merchantAfterSaleDetail,
+        meta: {
+          title: '售后详情',
           layout: 'merchant',
           requiresAuth: true,
           shopScoped: true,

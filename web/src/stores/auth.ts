@@ -45,6 +45,11 @@ export const useAuthStore = defineStore('auth', () => {
     return currentUser.value?.platformPermissions.includes(permission) ?? false
   }
 
+  function setMockMerchantSession() {
+    token.value = 'mock-satoken-for-merchant-dev'
+    currentUser.value = mockUser
+  }
+
   function clearSession() {
     token.value = ''
     currentUser.value = null
@@ -56,6 +61,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn,
     manageableShops,
     hasPlatformPermission,
+    setMockMerchantSession,
     clearSession
   }
 })

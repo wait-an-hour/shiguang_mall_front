@@ -5,6 +5,8 @@ import { ElMessage, type FormRules } from 'element-plus'
 import logoUrl from '@/assets/shiguang-logo.png'
 import { ROUTE_NAME } from '@/constants/routes'
 import { useAdminAuthStore } from '@/stores/adminAuth'
+import { useAuthStore } from '@/stores/auth'
+import { useMerchantStore } from '@/stores/merchant'
 import type { PlatformUser } from '@/types/admin'
 
 type LoginRole = 'SUPER_ADMIN' | 'MERCHANT'
@@ -18,6 +20,8 @@ interface LoginForm {
 const route = useRoute()
 const router = useRouter()
 const adminAuth = useAdminAuthStore()
+const merchantAuth = useAuthStore()
+const merchantStore = useMerchantStore()
 const loading = ref(false)
 
 const form = reactive<LoginForm>({
@@ -74,6 +78,8 @@ async function submit() {
     if (!validateMockAccount()) throw new Error('账号、密码或身份选择不正确')
 
     if (form.role === 'MERCHANT') {
+      merchantAuth.setMockMerchantSession()
+      merchantStore.setCurrentShop('SHOP202607260001')
       ElMessage.success('登录成功')
       await router.replace({ name: ROUTE_NAME.MerchantEntry })
       return

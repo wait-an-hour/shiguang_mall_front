@@ -35,7 +35,7 @@ export interface RecentMerchantOrder {
   orderNo: string
   buyerName: string
   amount: Money
-  status: 'PENDING_SHIPMENT' | 'SHIPPED' | 'COMPLETED' | 'AFTER_SALE'
+  status: 'PENDING_SHIPMENT' | 'PENDING_RECEIPT' | 'COMPLETED' | 'AFTER_SALE'
   createdAt: Timestamp
 }
 
@@ -243,4 +243,222 @@ export interface InventoryTransactionView {
   afterAvailableStock: number
   remark?: string
   createdAt: Timestamp
+}
+
+export interface UserSummary {
+  id: Id
+  username: string
+  nickname: string
+  avatarUrl: string | null
+  status: 'ACTIVE' | 'DISABLED' | 'LOCKED'
+}
+
+export interface ShopBrief {
+  id: Id
+  shopNo: string
+  shopName: string
+  logoUrl: string | null
+  status: ShopStatus
+}
+
+export interface AddressSnapshot {
+  recipientName: string
+  recipientPhone: string
+  provinceName: string
+  cityName: string
+  districtName: string
+  detailAddress: string
+}
+
+export type OrderStatus = 'PENDING_PAYMENT' | 'PENDING_SHIPMENT' | 'PENDING_RECEIPT' | 'COMPLETED' | 'CANCELLED'
+export type OrderPaymentStatus = 'UNPAID' | 'PAID' | 'PARTIALLY_REFUNDED' | 'REFUNDED'
+export type OrderAction = 'SHIP' | 'VIEW_AFTER_SALE' | 'CONTACT_BUYER'
+export type OrderOperationType = 'CREATE' | 'PAY' | 'CANCEL' | 'SHIP' | 'COMPLETE'
+export type OperatorType = 'USER' | 'SHOP' | 'PLATFORM' | 'SYSTEM'
+export type ReservationStatus = 'LOCKED' | 'RELEASED' | 'DEDUCTED'
+
+export interface OrderItemSummaryView {
+  productName: string
+  skuName: string
+  imageUrl: string | null
+  quantity: number
+}
+
+export interface ShopOrderSummaryView {
+  id: Id
+  orderNo: string
+  tradeId: Id
+  tradeNo: string
+  shop: ShopBrief
+  buyer: UserSummary
+  orderStatus: OrderStatus
+  paymentStatus: OrderPaymentStatus
+  payableAmount: Money
+  refundAmount: Money
+  itemSummary: OrderItemSummaryView[]
+  itemKinds: number
+  totalQuantity: number
+  createdAt: Timestamp
+  availableActions: OrderAction[]
+}
+
+export interface OrderItemView {
+  id: Id
+  spuId: Id
+  skuId: Id
+  spuNo: string
+  skuNo: string
+  productName: string
+  skuName: string
+  spec: Record<string, string>
+  imageUrl: string | null
+  unitPrice: Money
+  quantity: number
+  originalAmount: Money
+  freightAmount: Money
+  payableAmount: Money
+  refundedQuantity: number
+  refundedAmount: Money
+  reservationStatus: ReservationStatus
+}
+
+export interface ShippingView {
+  carrierCode: string
+  carrierName: string
+  trackingNo: string
+  shippedAt: Timestamp
+}
+
+export interface OrderStatusHistoryView {
+  fromStatus: OrderStatus | null
+  toStatus: OrderStatus
+  operationType: OrderOperationType
+  operatorType: OperatorType
+  remark: string | null
+  createdAt: Timestamp
+}
+
+export interface OrderDetailView extends Omit<ShopOrderSummaryView, 'itemSummary' | 'itemKinds' | 'totalQuantity' | 'createdAt'> {
+  itemAmount: Money
+  freightAmount: Money
+  buyerRemark: string | null
+  address: AddressSnapshot
+  shipping: ShippingView | null
+  items: OrderItemView[]
+  history: OrderStatusHistoryView[]
+}
+
+export interface ShipOrderRequest {
+  carrierCode: string
+  carrierName: string
+  trackingNo: string
+}
+
+export type AfterSaleType = 'REFUND_ONLY' | 'RETURN_REFUND'
+export type AfterSaleStatus = 'PENDING' | 'REJECTED' | 'WAITING_RETURN' | 'REFUNDING' | 'COMPLETED' | 'CANCELLED'
+export type RefundStatus = 'NOT_STARTED' | 'PROCESSING' | 'SUCCESS' | 'FAILED'
+export type AfterSaleAction = 'APPROVE' | 'REJECT' | 'CONFIRM_RETURN_RECEIVED' | 'RETRY_REFUND'
+
+export interface AfterSaleOrderBrief {
+  id: Id
+  orderNo: string
+  orderStatus: OrderStatus
+}
+
+export interface AfterSaleItemView {
+  id: Id
+  productName: string
+  skuName: string
+  spec: Record<string, string>
+  imageUrl: string | null
+  unitPrice: Money
+  purchasedQuantity: number
+}
+
+export interface AfterSaleReviewView {
+  reviewerId: Id
+  comment: string | null
+  reviewedAt: Timestamp
+}
+
+export interface ReturnShipmentView {
+  carrierCode: string
+  carrierName: string
+  trackingNo: string
+  returnedAt: Timestamp
+  receivedAt: Timestamp | null
+}
+
+export interface AfterSaleEligibilityView {
+  orderId: Id
+  orderItemId: Id
+  orderStatus: OrderStatus
+  purchasedQuantity: number
+  refundedQuantity: number
+  occupiedQuantity: number
+  maximumRequestQuantity: number
+  itemPayableAmount: Money
+  refundedAmount: Money
+  occupiedAmount: Money
+  maximumRequestAmount: Money
+  supportedTypes: AfterSaleType[]
+  eligibleUntil: Timestamp | null
+  eligible: boolean
+  ineligibleReason: string | null
+}
+
+export interface ShopAfterSaleSummaryView {
+  id: Id
+  afterSaleNo: string
+  requestType: AfterSaleType
+  status: AfterSaleStatus
+  refundStatus: RefundStatus
+  order: AfterSaleOrderBrief
+  shop: ShopBrief
+  buyer: UserSummary
+  item: AfterSaleItemView
+  quantity: number
+  requestedAmount: Money
+  approvedAmount: Money | null
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+export interface ShopAfterSaleDetailView extends ShopAfterSaleSummaryView {
+  reasonCode: string
+  reasonDescription: string | null
+  evidenceUrls: string[]
+  approvedQuantity: number | null
+  review: AfterSaleReviewView | null
+  returnShipment: ReturnShipmentView | null
+  refundNo: string | null
+  refundFailureReason: string | null
+  refundedAt: Timestamp | null
+  completedAt: Timestamp | null
+  cancelledAt: Timestamp | null
+  version: number
+  availableActions: AfterSaleAction[]
+  eligibilityAtReview: AfterSaleEligibilityView
+}
+
+export interface ApproveAfterSaleRequest {
+  approvedQuantity: number
+  approvedAmount: Money
+  reviewComment: string | null
+  version: number
+}
+
+export interface RejectAfterSaleRequest {
+  reviewComment: string
+  version: number
+}
+
+export interface ConfirmReturnReceivedRequest {
+  remark: string | null
+  version: number
+}
+
+export interface RetryRefundRequest {
+  remark: string
+  version: number
 }
