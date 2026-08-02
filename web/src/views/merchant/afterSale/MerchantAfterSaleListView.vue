@@ -32,6 +32,12 @@ const filters = reactive({
 const statusOptions = computed(() => Object.entries(AFTER_SALE_STATUS_LABELS) as Array<[AfterSaleStatus, string]>)
 const refundOptions = computed(() => Object.entries(REFUND_STATUS_LABELS) as Array<[RefundStatus, string]>)
 const typeOptions = computed(() => Object.entries(AFTER_SALE_TYPE_LABELS) as Array<[AfterSaleType, string]>)
+function getAfterSaleTypeLabel(type: AfterSaleType) { return AFTER_SALE_TYPE_LABELS[type] }
+function getAfterSaleTypeTagType(type: AfterSaleType) { return AFTER_SALE_TYPE_TAG_TYPES[type] }
+function getAfterSaleStatusLabel(status: AfterSaleStatus) { return AFTER_SALE_STATUS_LABELS[status] }
+function getAfterSaleStatusTagType(status: AfterSaleStatus) { return AFTER_SALE_STATUS_TAG_TYPES[status] }
+function getRefundStatusLabel(status: RefundStatus) { return REFUND_STATUS_LABELS[status] }
+function getRefundStatusTagType(status: RefundStatus) { return REFUND_STATUS_TAG_TYPES[status] }
 
 async function loadAfterSales() {
   loading.value = true
@@ -111,9 +117,9 @@ onMounted(loadAfterSales)
       <el-table :data="pageData.items" row-key="id">
         <el-table-column label="售后单" min-width="210"><template #default="{ row }"><div class="name">{{ row.afterSaleNo }}</div><div class="meta">{{ row.order.orderNo }}</div></template></el-table-column>
         <el-table-column label="商品" min-width="260"><template #default="{ row }"><div class="name">{{ row.item.productName }}</div><div class="meta">{{ row.item.skuName }} x{{ row.quantity }}</div></template></el-table-column>
-        <el-table-column label="类型" width="110"><template #default="{ row }"><el-tag :type="AFTER_SALE_TYPE_TAG_TYPES[row.requestType]" effect="light">{{ AFTER_SALE_TYPE_LABELS[row.requestType] }}</el-tag></template></el-table-column>
-        <el-table-column label="售后状态" width="110"><template #default="{ row }"><el-tag :type="AFTER_SALE_STATUS_TAG_TYPES[row.status]" effect="light">{{ AFTER_SALE_STATUS_LABELS[row.status] }}</el-tag></template></el-table-column>
-        <el-table-column label="退款状态" width="110"><template #default="{ row }"><el-tag :type="REFUND_STATUS_TAG_TYPES[row.refundStatus]" effect="light">{{ REFUND_STATUS_LABELS[row.refundStatus] }}</el-tag></template></el-table-column>
+        <el-table-column label="类型" width="110"><template #default="{ row }"><el-tag :type="getAfterSaleTypeTagType(row.requestType)" effect="light">{{ getAfterSaleTypeLabel(row.requestType) }}</el-tag></template></el-table-column>
+        <el-table-column label="售后状态" width="110"><template #default="{ row }"><el-tag :type="getAfterSaleStatusTagType(row.status)" effect="light">{{ getAfterSaleStatusLabel(row.status) }}</el-tag></template></el-table-column>
+        <el-table-column label="退款状态" width="110"><template #default="{ row }"><el-tag :type="getRefundStatusTagType(row.refundStatus)" effect="light">{{ getRefundStatusLabel(row.refundStatus) }}</el-tag></template></el-table-column>
         <el-table-column prop="requestedAmount" label="申请金额" width="110" />
         <el-table-column prop="updatedAt" label="更新时间" width="210" />
         <el-table-column label="操作" fixed="right" width="100"><template #default="{ row }"><el-button text type="primary" @click="goDetail(row)">处理</el-button></template></el-table-column>

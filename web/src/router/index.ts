@@ -58,7 +58,11 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/merchant',
     name: ROUTE_NAME.MerchantEntry,
-    redirect: () => ({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: 'SHOP202607260001' } }),
+    redirect: () => {
+      const authStore = useAuthStore()
+      const firstShop = authStore.manageableShops[0]
+      return firstShop ? { name: ROUTE_NAME.MerchantDashboard, params: { shopId: firstShop.id } } : { name: ROUTE_NAME.MerchantShopSelect }
+    },
     meta: {
       title: '商家端入口',
       layout: 'blank',
@@ -304,7 +308,7 @@ router.beforeEach((to) => {
       return { path: '/login', query: { redirect: to.fullPath } }
     }
 
-    const permissions = to.meta.permissions ?? []
+    const permissions = (to.meta.permissions ?? []) as import('@/types/admin').PermissionCode[]
     if (permissions.length > 0 && !adminAuthStore.hasPermissions(permissions)) {
       return { name: ROUTE_NAME.Forbidden }
     }

@@ -3,10 +3,10 @@ export type Money = string
 export type Timestamp = string
 
 export type AdminRole = 'SUPER_ADMIN' | 'OPERATION_ADMIN' | 'AUDIT_ADMIN' | 'MERCHANT'
-export type AccountStatus = 'ACTIVE' | 'FROZEN'
+export type AccountStatus = 'ACTIVE' | 'DISABLED' | 'LOCKED'
 export type CommonStatus = 'ENABLED' | 'DISABLED'
-export type ProductStatus = 'ON_SHELF' | 'OFF_SHELF' | 'REJECTED'
-export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED'
+export type ProductStatus = 'DRAFT' | 'PENDING_REVIEW' | 'ON_SHELF' | 'OFF_SHELF' | 'REJECTED' | 'BANNED'
+export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'PENDING_SHIPMENT' | 'PENDING_RECEIPT' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED'
 export type AfterSaleStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 export type PermissionCode =
   | 'admin:dashboard:view'
@@ -49,6 +49,7 @@ export interface CategoryRecord {
   id: Id
   parentId?: Id
   name: string
+  code?: string
   level: number
   sort: number
   status: CommonStatus
@@ -58,7 +59,9 @@ export interface CategoryRecord {
 export interface BrandRecord {
   id: Id
   name: string
+  code?: string
   initial: string
+  logoUrl?: string | null
   status: CommonStatus
   createdAt: Timestamp
 }
@@ -72,6 +75,7 @@ export interface PlatformProduct {
   price: Money
   status: ProductStatus
   reason?: string
+  contentVersion?: number
   createdAt: Timestamp
 }
 
@@ -115,6 +119,7 @@ export interface PageResult<T> {
   page: number
   pageSize: number
   total: number
+  totalPages?: number
 }
 
 export interface ListQuery {

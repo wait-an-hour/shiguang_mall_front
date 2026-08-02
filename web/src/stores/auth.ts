@@ -1,58 +1,78 @@
 import { computed, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
-import { SHOP_PERMISSION } from '../constants/merchant'
+import { getCurrentUser, login as loginApi, logout as logoutApi, register as registerApi } from '@/api/auth'
+import type { RegisterRequest } from '@/api/auth'
 import type { CurrentUserView } from '../types/merchant'
 
-const mockUser: CurrentUserView = {
-  id: 'USER202607310001',
-  username: 'merchant_admin',
-  displayName: '商家运营员',
-  roles: ['MERCHANT_ADMIN'],
-  platformPermissions: [],
-  shops: [
-    {
-      id: 'SHOP202607260001',
-      name: '时光数码店',
-      code: 'SG-DIGITAL-001',
-      status: 'ACTIVE',
-      permissions: [
-        SHOP_PERMISSION.ProductManage,
-        SHOP_PERMISSION.InventoryManage,
-        SHOP_PERMISSION.OrderRead,
-        SHOP_PERMISSION.OrderShip,
-        SHOP_PERMISSION.AfterSaleManage,
-        SHOP_PERMISSION.MemberManage
-      ]
-    },
-    {
-      id: 'SHOP202607260002',
-      name: '时光生活馆',
-      code: 'SG-LIFE-002',
-      status: 'PENDING',
-      permissions: [SHOP_PERMISSION.ProductManage, SHOP_PERMISSION.InventoryManage, SHOP_PERMISSION.OrderRead]
-    }
-  ]
+const STORAGE_KEY = 'shiguang-auth-session'
+
+interface StoredSession {
+  token: string
+  currentUser: CurrentUserView | null
+}
+
+function readSession(): StoredSession {
+  const raw = localStorage.getItem(STORAGE_KEY)
+  if (!raw) return { token: '', currentUser: null }
+  try {
+    return JSON.parse(raw) as StoredSession
+  } catch {
+    return { token: '', currentUser: null }
+  }
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = shallowRef('mock-satoken-for-merchant-dev')
-  const currentUser = shallowRef<CurrentUserView | null>(mockUser)
+  const stored = readSession()
+  const token = shallowRef(stored.token)
+  const currentUser = shallowRef<CurrentUserView | null>(stored.currentUser)
 
   const isLoggedIn = computed(() => Boolean(token.value && currentUser.value))
   const manageableShops = computed(() => currentUser.value?.shops ?? [])
+
+  function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: token.value, currentUser: currentUser.value }))
+  }
 
   function hasPlatformPermission(permission: string) {
     return currentUser.value?.platformPermissions.includes(permission) ?? false
   }
 
-  function setMockMerchantSession() {
-    token.value = 'mock-satoken-for-merchant-dev'
-    currentUser.value = mockUser
+  function setSession(nextToken: string, nextUser: CurrentUserView) {
+    token.value = nextToken
+    currentUser.value = nextUser
+    persist()
+  }
+
+  async function login(username: string, password: string) {
+    const loginView = await loginApi(username, password)
+    token.value = loginView.tokenValue
+    currentUser.value = await getCurrentUser(loginView.tokenValue)
+    persist()
+    return currentUser.value
+  }
+
+  async function register(data: RegisterRequest) {
+    return await registerApi(data)
+  }
+
+  async function refreshCurrentUser() {
+    currentUser.value = await getCurrentUser()
+    persist()
+    return currentUser.value
+  }
+
+  async function logout() {
+    try {
+      if (token.value) await logoutApi()
+    } finally {
+      clearSession()
+    }
   }
 
   function clearSession() {
     token.value = ''
     currentUser.value = null
+    localStorage.removeItem(STORAGE_KEY)
   }
 
   return {
@@ -61,7 +81,11 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn,
     manageableShops,
     hasPlatformPermission,
-    setMockMerchantSession,
+    setSession,
+    login,
+    register,
+    refreshCurrentUser,
+    logout,
     clearSession
   }
 })

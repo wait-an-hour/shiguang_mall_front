@@ -1,3 +1,4 @@
+import request from '@/utils/request'
 import type { Id, PageView } from '../../types/common'
 import type {
   CreateProductRequest,
@@ -19,354 +20,258 @@ export interface MerchantProductQuery {
   sort?: 'created_desc' | 'updated_desc' | 'stock_asc'
 }
 
-const now = () => new Date().toISOString()
-
-const products: ShopProductDetailView[] = [
-  {
-    id: 'SPU202607260001',
-    spuNo: 'SPU-IP16-001',
-    productName: 'iPhone 16 黑色 256GB',
-    category: { id: 'CAT1001', name: '手机数码', level: 2 },
-    brand: { id: 'BRAND1001', name: 'Apple' },
-    subtitle: '官方正品，支持校园分期',
-    coverImageUrl: 'https://dummyimage.com/160x160/e5e7eb/64748b&text=iPhone',
-    galleryImageUrls: ['https://dummyimage.com/640x360/e5e7eb/64748b&text=iPhone+16'],
-    detailHtml: 'A18 芯片，全天候续航，适合学习与创作。',
-    packageList: '手机、USB-C 充电线、资料',
-    serviceNotes: '7 天无理由退货，官方保修',
-    attributes: [{ name: '颜色', value: '黑色' }],
-    status: 'ON_SHELF',
-    minSalePrice: '5999.00',
-    skuCount: 2,
-    totalAvailableStock: 23,
-    contentVersion: 1,
-    createdAt: '2026-07-26T10:00:00.000+08:00',
-    updatedAt: '2026-07-31T09:00:00.000+08:00',
-    skus: [
-      {
-        id: 'SKU202607260001',
-        skuNo: 'IP16-BLK-256',
-        skuName: '黑色 256GB',
-        imageUrl: 'https://dummyimage.com/120x120/e5e7eb/64748b&text=256G',
-        salePrice: '5999.00',
-        marketPrice: '6299.00',
-        barcode: '690000000001',
-        status: 'ENABLED',
-        stock: { skuId: 'SKU202607260001', availableStock: 15, lockedStock: 2, safetyStock: 10, version: 1 },
-        version: 1,
-        createdAt: '2026-07-26T10:00:00.000+08:00',
-        updatedAt: '2026-07-31T09:00:00.000+08:00'
-      },
-      {
-        id: 'SKU202607260004',
-        skuNo: 'IP16-BLK-512',
-        skuName: '黑色 512GB',
-        imageUrl: 'https://dummyimage.com/120x120/e5e7eb/64748b&text=512G',
-        salePrice: '6999.00',
-        marketPrice: '7299.00',
-        barcode: '690000000004',
-        status: 'ENABLED',
-        stock: { skuId: 'SKU202607260004', availableStock: 8, lockedStock: 1, safetyStock: 6, version: 1 },
-        version: 1,
-        createdAt: '2026-07-26T10:10:00.000+08:00',
-        updatedAt: '2026-07-31T09:00:00.000+08:00'
-      }
-    ],
-    statusHistories: [
-      { id: 'HIS1001', status: 'DRAFT', operatorName: '商家运营', remark: '创建商品草稿', createdAt: '2026-07-26T10:00:00.000+08:00' },
-      { id: 'HIS1002', status: 'ON_SHELF', operatorName: '平台审核', remark: '审核通过并上架', createdAt: '2026-07-27T10:00:00.000+08:00' }
-    ]
-  },
-  {
-    id: 'SPU202607260002',
-    spuNo: 'SPU-CASE-001',
-    productName: '磁吸保护壳 雾蓝色',
-    category: { id: 'CAT1002', name: '数码配件', level: 2 },
-    brand: { id: 'BRAND1002', name: '时光优选' },
-    subtitle: '轻薄防摔，兼容磁吸充电',
-    coverImageUrl: 'https://dummyimage.com/160x160/dbeafe/64748b&text=Case',
-    galleryImageUrls: ['https://dummyimage.com/640x360/dbeafe/64748b&text=Case'],
-    detailHtml: '亲肤材质，边角加强保护。',
-    packageList: '保护壳 1 个',
-    serviceNotes: '拆封后非质量问题不退换',
-    attributes: [{ name: '材质', value: 'TPU' }],
-    status: 'DRAFT',
-    minSalePrice: '99.00',
-    skuCount: 1,
-    totalAvailableStock: 7,
-    contentVersion: 1,
-    createdAt: '2026-07-28T11:00:00.000+08:00',
-    updatedAt: '2026-07-30T11:00:00.000+08:00',
-    skus: [
-      {
-        id: 'SKU202607260002',
-        skuNo: 'CASE-MAG-BLUE',
-        skuName: '雾蓝色',
-        imageUrl: 'https://dummyimage.com/120x120/dbeafe/64748b&text=Blue',
-        salePrice: '99.00',
-        marketPrice: '129.00',
-        barcode: '690000000002',
-        status: 'ENABLED',
-        stock: { skuId: 'SKU202607260002', availableStock: 7, lockedStock: 1, safetyStock: 10, version: 1 },
-        version: 1,
-        createdAt: '2026-07-28T11:00:00.000+08:00',
-        updatedAt: '2026-07-30T11:00:00.000+08:00'
-      }
-    ],
-    statusHistories: [
-      { id: 'HIS2001', status: 'DRAFT', operatorName: '商家运营', remark: '创建商品草稿', createdAt: '2026-07-28T11:00:00.000+08:00' }
-    ]
-  },
-  {
-    id: 'SPU202607260003',
-    spuNo: 'SPU-CABLE-001',
-    productName: 'Type-C 编织数据线 1m',
-    category: { id: 'CAT1002', name: '数码配件', level: 2 },
-    brand: { id: 'BRAND1002', name: '时光优选' },
-    subtitle: '耐弯折，支持快充',
-    coverImageUrl: 'https://dummyimage.com/160x160/f1f5f9/64748b&text=Cable',
-    galleryImageUrls: ['https://dummyimage.com/640x360/f1f5f9/64748b&text=Cable'],
-    detailHtml: '尼龙编织外被，日常学习通勤备用。',
-    packageList: '数据线 1 根',
-    serviceNotes: '一年质保',
-    attributes: [{ name: '长度', value: '1m' }],
-    status: 'OFF_SHELF',
-    minSalePrice: '39.00',
-    skuCount: 1,
-    totalAvailableStock: 0,
-    contentVersion: 2,
-    createdAt: '2026-07-29T12:00:00.000+08:00',
-    updatedAt: '2026-07-31T08:00:00.000+08:00',
-    skus: [
-      {
-        id: 'SKU202607260003',
-        skuNo: 'CABLE-C-1M',
-        skuName: '白色 1m',
-        imageUrl: 'https://dummyimage.com/120x120/f1f5f9/64748b&text=1m',
-        salePrice: '39.00',
-        marketPrice: '49.00',
-        barcode: '690000000003',
-        status: 'DISABLED',
-        stock: { skuId: 'SKU202607260003', availableStock: 0, lockedStock: 0, safetyStock: 20, version: 2 },
-        version: 1,
-        createdAt: '2026-07-29T12:00:00.000+08:00',
-        updatedAt: '2026-07-31T08:00:00.000+08:00'
-      }
-    ],
-    statusHistories: [
-      { id: 'HIS3001', status: 'DRAFT', operatorName: '商家运营', remark: '创建商品草稿', createdAt: '2026-07-29T12:00:00.000+08:00' },
-      { id: 'HIS3002', status: 'OFF_SHELF', operatorName: '商家运营', remark: '库存不足主动下架', createdAt: '2026-07-31T08:00:00.000+08:00' }
-    ]
-  }
-]
-
-function clone<T>(value: T): T {
-  return structuredClone(value)
+interface BackendCategoryBrief {
+  id: Id
+  categoryCode?: string
+  categoryName: string
 }
 
-function paginate<T>(items: T[], page = 1, pageSize = 10): PageView<T> {
-  const total = items.length
-  const totalPages = Math.max(1, Math.ceil(total / pageSize))
-  const start = (page - 1) * pageSize
-
-  return { items: clone(items.slice(start, start + pageSize)), page, pageSize, total, totalPages }
+interface BackendBrandView {
+  id: Id
+  brandCode?: string
+  brandName: string
+  logoUrl?: string
+  status?: string
 }
 
-function toSummary(product: ShopProductDetailView): ShopProductSummaryView {
-  const { galleryImageUrls, detailHtml, packageList, serviceNotes, attributes, skus, statusHistories, ...summary } = product
-  void galleryImageUrls
-  void detailHtml
-  void packageList
-  void serviceNotes
-  void attributes
-  void skus
-  void statusHistories
-  return clone(summary)
+interface BackendStockView {
+  skuId: Id
+  availableQuantity: number
+  lockedQuantity: number
+  version: number
+  updatedAt?: string
 }
 
-function findProduct(spuId: Id) {
-  const product = products.find((item) => item.id === spuId)
-  if (!product) {
-    throw new Error('商品不存在')
-  }
-  return product
+interface BackendShopSkuView {
+  id: Id
+  skuNo: string
+  skuName: string
+  spec: Record<string, string>
+  salePrice: string
+  marketPrice: string
+  barcode: string
+  imageUrl: string
+  status: 'ENABLED' | 'DISABLED'
+  version: number
+  stock: BackendStockView
+  createdAt: string
+  updatedAt: string
 }
 
-function syncProductSummary(product: ShopProductDetailView) {
-  product.skuCount = product.skus.length
-  product.totalAvailableStock = product.skus.reduce((total, sku) => total + sku.stock.availableStock, 0)
-  product.minSalePrice = product.skus.reduce((min, sku) => (Number(sku.salePrice) < Number(min) ? sku.salePrice : min), product.skus[0]?.salePrice ?? '0.00')
-  product.updatedAt = now()
+interface BackendStatusHistoryView {
+  id: Id
+  toStatus: ProductStatus
+  operator?: { nickname?: string; username?: string }
+  reason?: string
+  createdAt: string
 }
 
-function addStatusHistory(product: ShopProductDetailView, status: ProductStatus, remark: string) {
-  product.status = status
-  product.statusHistories.unshift({
-    id: `HIS${Date.now()}`,
-    status,
-    operatorName: '商家运营',
-    remark,
-    createdAt: now()
-  })
-  syncProductSummary(product)
+interface BackendShopProductSummaryView {
+  id: Id
+  spuNo: string
+  productName: string
+  subtitle?: string
+  coverUrl: string
+  category: BackendCategoryBrief
+  brand?: BackendBrandView
+  status: ProductStatus
+  contentVersion: number
+  skuCount: number
+  enabledSkuCount: number
+  availableQuantity: number
+  lockedQuantity: number
+  createdAt: string
+  updatedAt: string
 }
 
-export async function getMerchantProducts(_shopId: Id, query: MerchantProductQuery = {}) {
-  const keyword = query.keyword?.trim().toLowerCase()
-  let filtered = [...products]
-
-  if (keyword) {
-    filtered = filtered.filter((product) => product.productName.toLowerCase().includes(keyword) || product.spuNo.toLowerCase().includes(keyword))
-  }
-  if (query.status) {
-    filtered = filtered.filter((product) => product.status === query.status)
-  }
-  if (query.categoryId) {
-    filtered = filtered.filter((product) => product.category.id === query.categoryId)
-  }
-
-  if (query.sort === 'stock_asc') {
-    filtered.sort((a, b) => a.totalAvailableStock - b.totalAvailableStock)
-  } else if (query.sort === 'updated_desc') {
-    filtered.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-  } else {
-    filtered.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  }
-
-  return paginate(filtered.map(toSummary), query.page, query.pageSize)
+interface BackendShopProductDetailView extends BackendShopProductSummaryView {
+  galleryUrls: string[]
+  detailHtml: string
+  packingList?: string
+  serviceNote?: string
+  attributes: Array<{ attributeId: Id; attributeName: string; value: string; unit?: string }>
+  skus: BackendShopSkuView[]
+  history: BackendStatusHistoryView[]
 }
 
-export async function createMerchantProduct(_shopId: Id, request: CreateProductRequest) {
-  const id = `SPU${Date.now()}`
-  const createdAt = now()
-  const skus: ShopSkuView[] = request.skus.map((sku, index) => ({
-    id: `SKU${Date.now()}${index}`,
-    skuNo: `SKU-${Date.now()}-${index + 1}`,
+function toSort(sort?: MerchantProductQuery['sort']) {
+  if (sort === 'created_desc') return 'createdAt,desc'
+  if (sort === 'stock_asc') return 'availableQuantity,asc'
+  return 'updatedAt,desc'
+}
+
+function toCategory(category: BackendCategoryBrief) {
+  return { id: category.id, name: category.categoryName, level: 2 }
+}
+
+function toBrand(brand?: BackendBrandView) {
+  return brand ? { id: brand.id, name: brand.brandName, logoUrl: brand.logoUrl } : undefined
+}
+
+function toSku(sku: BackendShopSkuView): ShopSkuView {
+  return {
+    id: sku.id,
+    skuNo: sku.skuNo,
     skuName: sku.skuName,
     imageUrl: sku.imageUrl,
     salePrice: sku.salePrice,
     marketPrice: sku.marketPrice,
     barcode: sku.barcode,
-    status: 'ENABLED',
-    stock: { skuId: `SKU${Date.now()}${index}`, availableStock: sku.stock, lockedStock: 0, safetyStock: 10, version: 1 },
-    version: 1,
-    createdAt,
-    updatedAt: createdAt
-  }))
-  skus.forEach((sku) => {
-    sku.stock.skuId = sku.id
-  })
+    status: sku.status,
+    stock: {
+      skuId: sku.stock.skuId,
+      availableStock: sku.stock.availableQuantity,
+      lockedStock: sku.stock.lockedQuantity,
+      safetyStock: 0,
+      version: sku.stock.version
+    },
+    version: sku.version,
+    createdAt: sku.createdAt,
+    updatedAt: sku.updatedAt
+  }
+}
 
-  const product: ShopProductDetailView = {
-    id,
-    spuNo: `SPU-${Date.now()}`,
-    productName: request.productName,
-    category: { id: request.categoryId, name: `类目 ${request.categoryId}`, level: 2 },
-    brand: request.brandId ? { id: request.brandId, name: `品牌 ${request.brandId}` } : undefined,
-    subtitle: request.subtitle,
-    coverImageUrl: request.coverImageUrl,
-    galleryImageUrls: request.galleryImageUrls,
-    detailHtml: request.detailHtml,
-    packageList: request.packageList,
-    serviceNotes: request.serviceNotes,
-    attributes: request.attributes,
-    status: 'DRAFT',
-    minSalePrice: skus[0]?.salePrice ?? '0.00',
-    skuCount: skus.length,
-    totalAvailableStock: skus.reduce((total, sku) => total + sku.stock.availableStock, 0),
-    contentVersion: 1,
-    createdAt,
-    updatedAt: createdAt,
+function toSummary(product: BackendShopProductSummaryView): ShopProductSummaryView {
+  return {
+    id: product.id,
+    spuNo: product.spuNo,
+    productName: product.productName,
+    category: toCategory(product.category),
+    brand: toBrand(product.brand),
+    subtitle: product.subtitle,
+    coverImageUrl: product.coverUrl,
+    status: product.status,
+    minSalePrice: '0.00',
+    skuCount: product.skuCount,
+    totalAvailableStock: product.availableQuantity,
+    contentVersion: product.contentVersion,
+    createdAt: product.createdAt,
+    updatedAt: product.updatedAt
+  }
+}
+
+function toDetail(product: BackendShopProductDetailView): ShopProductDetailView {
+  const skus = product.skus.map(toSku)
+  return {
+    ...toSummary(product),
+    minSalePrice: skus.reduce((min, sku) => sku.salePrice < min ? sku.salePrice : min, skus[0]?.salePrice ?? '0.00'),
+    galleryImageUrls: product.galleryUrls,
+    detailHtml: product.detailHtml,
+    packageList: product.packingList,
+    serviceNotes: product.serviceNote,
+    attributes: product.attributes.map((item) => ({ name: item.attributeName, value: item.value })),
     skus,
-    statusHistories: [{ id: `HIS${Date.now()}`, status: 'DRAFT', operatorName: '商家运营', remark: '创建商品草稿', createdAt }]
+    statusHistories: product.history.map((item) => ({
+      id: item.id,
+      status: item.toStatus,
+      operatorName: item.operator?.nickname || item.operator?.username || '系统',
+      remark: item.reason || '',
+      createdAt: item.createdAt
+    }))
   }
-
-  products.unshift(product)
-  return clone(product)
 }
 
-export async function getMerchantProductDetail(_shopId: Id, spuId: Id) {
-  return clone(findProduct(spuId))
-}
-
-export async function updateMerchantProductContent(_shopId: Id, spuId: Id, request: UpdateProductContentRequest) {
-  const product = findProduct(spuId)
-  product.productName = request.productName
-  product.category = { id: request.categoryId, name: `类目 ${request.categoryId}`, level: 2 }
-  product.brand = request.brandId ? { id: request.brandId, name: `品牌 ${request.brandId}` } : undefined
-  product.subtitle = request.subtitle
-  product.coverImageUrl = request.coverImageUrl
-  product.galleryImageUrls = request.galleryImageUrls
-  product.detailHtml = request.detailHtml
-  product.packageList = request.packageList
-  product.serviceNotes = request.serviceNotes
-  product.attributes = request.attributes
-  product.contentVersion = request.version + 1
-  syncProductSummary(product)
-  return clone(product)
-}
-
-export async function createMerchantSku(_shopId: Id, spuId: Id, request: CreateSkuRequest) {
-  const product = findProduct(spuId)
-  const sku: ShopSkuView = {
-    id: `SKU${Date.now()}`,
-    skuNo: `SKU-${Date.now()}`,
-    skuName: request.skuName,
-    imageUrl: request.imageUrl,
-    salePrice: request.salePrice,
-    marketPrice: request.marketPrice,
-    barcode: request.barcode,
-    status: 'ENABLED',
-    stock: { skuId: '', availableStock: request.stock, lockedStock: 0, safetyStock: 10, version: 1 },
-    version: 1,
-    createdAt: now(),
-    updatedAt: now()
+function toCreatePayload(data: CreateProductRequest) {
+  return {
+    categoryId: data.categoryId,
+    brandId: data.brandId,
+    productName: data.productName,
+    subtitle: data.subtitle,
+    coverUrl: data.coverImageUrl,
+    galleryUrls: data.galleryImageUrls,
+    detailHtml: data.detailHtml,
+    packingList: data.packageList,
+    serviceNote: data.serviceNotes,
+    attributes: [],
+    skus: data.skus.map((sku) => ({
+      skuName: sku.skuName,
+      spec: { 默认: sku.skuName },
+      salePrice: sku.salePrice,
+      marketPrice: sku.marketPrice,
+      barcode: sku.barcode,
+      imageUrl: sku.imageUrl
+    }))
   }
-  sku.stock.skuId = sku.id
-  product.skus.push(sku)
-  syncProductSummary(product)
-  return clone(sku)
 }
 
-export async function updateMerchantSku(_shopId: Id, spuId: Id, skuId: Id, request: UpdateSkuRequest) {
-  const product = findProduct(spuId)
-  const sku = product.skus.find((item) => item.id === skuId)
-  if (!sku) {
-    throw new Error('SKU 不存在')
+function toUpdatePayload(data: UpdateProductContentRequest, detail: ShopProductDetailView) {
+  return {
+    categoryId: data.categoryId,
+    brandId: data.brandId,
+    productName: data.productName,
+    subtitle: data.subtitle,
+    coverUrl: data.coverImageUrl,
+    galleryUrls: data.galleryImageUrls,
+    detailHtml: data.detailHtml,
+    packingList: data.packageList,
+    serviceNote: data.serviceNotes,
+    attributes: [],
+    contentVersion: data.version,
+    skuContents: detail.skus.map((sku) => ({
+      skuId: sku.id,
+      skuName: sku.skuName,
+      imageUrl: sku.imageUrl,
+      version: sku.version
+    }))
   }
-  sku.skuName = request.skuName ?? sku.skuName
-  sku.imageUrl = request.imageUrl ?? sku.imageUrl
-  sku.salePrice = request.salePrice ?? sku.salePrice
-  sku.marketPrice = request.marketPrice ?? sku.marketPrice
-  sku.barcode = request.barcode ?? sku.barcode
-  sku.status = request.status ?? sku.status
-  sku.version = request.version + 1
-  sku.updatedAt = now()
-  syncProductSummary(product)
-  return clone(sku)
+}
+
+export async function getMerchantProducts(shopId: Id, query: MerchantProductQuery = {}) {
+  const data = await request.get<PageView<BackendShopProductSummaryView>>(`/shops/${shopId}/products`, {
+    params: { ...query, status: query.status || undefined, categoryId: query.categoryId || undefined, sort: toSort(query.sort) }
+  }) as unknown as PageView<BackendShopProductSummaryView>
+  return { ...data, items: data.items.map(toSummary) }
+}
+
+export async function createMerchantProduct(shopId: Id, data: CreateProductRequest) {
+  const product = await request.post<BackendShopProductDetailView>(`/shops/${shopId}/products`, toCreatePayload(data)) as unknown as BackendShopProductDetailView
+  return toDetail(product)
+}
+
+export async function getMerchantProductDetail(shopId: Id, spuId: Id) {
+  const product = await request.get<BackendShopProductDetailView>(`/shops/${shopId}/products/${spuId}`) as unknown as BackendShopProductDetailView
+  return toDetail(product)
+}
+
+export async function updateMerchantProductContent(shopId: Id, spuId: Id, data: UpdateProductContentRequest) {
+  const detail = await getMerchantProductDetail(shopId, spuId)
+  const product = await request.put<BackendShopProductDetailView>(`/shops/${shopId}/products/${spuId}/content`, toUpdatePayload(data, detail)) as unknown as BackendShopProductDetailView
+  return toDetail(product)
+}
+
+export async function createMerchantSku(shopId: Id, spuId: Id, data: CreateSkuRequest) {
+  const product = await request.post<BackendShopProductDetailView>(`/shops/${shopId}/products/${spuId}/skus`, {
+    skuName: data.skuName,
+    spec: { 默认: data.skuName },
+    salePrice: data.salePrice,
+    marketPrice: data.marketPrice,
+    barcode: data.barcode,
+    imageUrl: data.imageUrl,
+    contentVersion: 0
+  }) as unknown as BackendShopProductDetailView
+  return toDetail(product).skus.at(-1) as ShopSkuView
+}
+
+export async function updateMerchantSku(shopId: Id, spuId: Id, skuId: Id, data: UpdateSkuRequest) {
+  const sku = await request.patch<BackendShopSkuView>(`/shops/${shopId}/products/${spuId}/skus/${skuId}`, data) as unknown as BackendShopSkuView
+  return toSku(sku)
 }
 
 export async function submitMerchantProductReview(shopId: Id, spuId: Id) {
-  void shopId
-  const product = findProduct(spuId)
-  addStatusHistory(product, 'PENDING_REVIEW', '提交平台审核')
-  return clone(product)
+  const product = await request.post<BackendShopProductDetailView>(`/shops/${shopId}/products/${spuId}/submit-review`) as unknown as BackendShopProductDetailView
+  return toDetail(product)
 }
 
 export async function putMerchantProductOnShelf(shopId: Id, spuId: Id) {
-  void shopId
-  const product = findProduct(spuId)
-  addStatusHistory(product, 'ON_SHELF', '商品上架')
-  return clone(product)
+  const product = await request.post<BackendShopProductDetailView>(`/shops/${shopId}/products/${spuId}/put-on-shelf`) as unknown as BackendShopProductDetailView
+  return toDetail(product)
 }
 
 export async function takeMerchantProductOffShelf(shopId: Id, spuId: Id) {
-  void shopId
-  const product = findProduct(spuId)
-  addStatusHistory(product, 'OFF_SHELF', '商品下架')
-  return clone(product)
+  const product = await request.post<BackendShopProductDetailView>(`/shops/${shopId}/products/${spuId}/take-off-shelf`) as unknown as BackendShopProductDetailView
+  return toDetail(product)
 }
 
 export function getMockProductSnapshots() {
-  return products
+  return [] as ShopProductDetailView[]
 }

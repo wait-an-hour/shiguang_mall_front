@@ -2,6 +2,27 @@ export type Id = string
 export type Money = string
 export type Timestamp = string
 
+export interface ApiResponse<T> {
+  code: string
+  message: string
+  data: T
+  requestId: string
+  timestamp: Timestamp
+}
+
+export interface ApiErrorDetail {
+  field?: string
+  reason: string
+}
+
+export interface ApiErrorResponse {
+  code: string
+  message: string
+  details?: ApiErrorDetail[]
+  requestId: string
+  timestamp: Timestamp
+}
+
 export interface PageMetric {
   key: string
   label: string

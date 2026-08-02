@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, type FormRules } from 'element-plus'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import logoUrl from '@/assets/shiguang-logo.png'
 import { ROUTE_NAME } from '@/constants/routes'
+import { loginAdmin } from '@/api/admin/auth'
 import { useAdminAuthStore } from '@/stores/adminAuth'
 import { useAuthStore } from '@/stores/auth'
 import { useMerchantStore } from '@/stores/merchant'
-import type { PlatformUser } from '@/types/admin'
 
 type LoginRole = 'SUPER_ADMIN' | 'MERCHANT'
 
@@ -22,71 +22,45 @@ const router = useRouter()
 const adminAuth = useAdminAuthStore()
 const merchantAuth = useAuthStore()
 const merchantStore = useMerchantStore()
+const formRef = ref<FormInstance>()
 const loading = ref(false)
 
 const form = reactive<LoginForm>({
   role: 'SUPER_ADMIN',
-  username: 'admin',
-  password: 'admin123'
+  username: '',
+  password: ''
 })
 
 const rules: FormRules<LoginForm> = {
   role: [{ required: true, message: '请选择登录身份', trigger: 'change' }],
   username: [
     { required: true, message: '请输入账号', trigger: 'blur' },
-    { min: 3, max: 20, message: '账号长度需为 3-20 位', trigger: 'blur' }
+    { min: 3, max: 64, message: '账号长度需为 3-64 位', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度需为 6-20 位', trigger: 'blur' }
+    { min: 6, max: 72, message: '密码长度需为 6-72 位', trigger: 'blur' }
   ]
 }
 
-function createMockAdminUser(): PlatformUser {
-  // 登录页只做前端演示鉴权：管理员身份写入管理端独立 store，避免影响商家端 mock auth。
-  return {
-    id: 'mock-admin',
-    username: form.username,
-    displayName: '平台管理员',
-    role: 'SUPER_ADMIN',
-    permissions: [
-      'admin:dashboard:view',
-      'admin:rbac:role',
-      'admin:rbac:account',
-      'admin:catalog:category',
-      'admin:catalog:brand',
-      'admin:product:view',
-      'admin:product:audit',
-      'admin:inventory:view',
-      'admin:order:view',
-      'admin:after-sale:audit'
-    ],
-    status: 'ACTIVE'
-  }
-}
-
-function validateMockAccount() {
-  // Mock 账号规则保持简单明确，方便课堂演示：管理员 admin/admin123，商家 merchant/merchant123。
-  if (form.role === 'SUPER_ADMIN') return form.username === 'admin' && form.password === 'admin123'
-  return form.username === 'merchant' && form.password === 'merchant123'
-}
-
 async function submit() {
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) return
+
   loading.value = true
   try {
-    await new Promise((resolve) => window.setTimeout(resolve, 240))
-    if (!validateMockAccount()) throw new Error('账号、密码或身份选择不正确')
-
     if (form.role === 'MERCHANT') {
-      merchantAuth.setMockMerchantSession()
-      merchantStore.setCurrentShop('SHOP202607260001')
+      const currentUser = await merchantAuth.login(form.username.trim(), form.password)
+      const firstShop = currentUser.shops[0]
+      if (!firstShop) throw new Error('当前账号没有可管理店铺')
+      merchantStore.setCurrentShop(firstShop.id)
       ElMessage.success('登录成功')
-      await router.replace({ name: ROUTE_NAME.MerchantEntry })
+      await router.replace({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: firstShop.id } })
       return
     }
 
-    const token = `mock-token-${form.role.toLowerCase()}-${Date.now()}`
-    adminAuth.setSession(token, createMockAdminUser())
+    const session = await loginAdmin(form.username.trim(), form.password)
+    adminAuth.setSession(session.token, session.user)
     ElMessage.success('登录成功')
     await router.replace(String(route.query.redirect || '/admin'))
   } catch (error) {
@@ -108,24 +82,24 @@ async function submit() {
         </div>
       </section>
 
-      <el-form :model="form" :rules="rules" label-position="top" @keyup.enter="submit">
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @keyup.enter="submit">
         <el-form-item label="登录身份" prop="role">
           <el-radio-group v-model="form.role">
-            <el-radio-button label="SUPER_ADMIN">管理员</el-radio-button>
-            <el-radio-button label="MERCHANT">商家</el-radio-button>
+            <el-radio-button value="SUPER_ADMIN">管理员</el-radio-button>
+            <el-radio-button value="MERCHANT">商家</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="账号" prop="username">
-          <el-input v-model="form.username" clearable placeholder="管理员 admin；商家 merchant" />
+          <el-input v-model="form.username" clearable placeholder="请输入账号" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" show-password placeholder="管理员 admin123；商家 merchant123" />
+          <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" />
         </el-form-item>
         <el-button type="primary" :loading="loading" class="auth-button" @click="submit">登录</el-button>
       </el-form>
 
       <div class="auth-footer">
-        <span>还没有商家账号？</span>
+        <span>还没有账号？</span>
         <router-link to="/register">立即注册</router-link>
       </div>
     </el-card>
@@ -147,7 +121,6 @@ async function submit() {
 }
 
 .auth-page::before {
-  // 底层虚化光晕用于营造晨昏交替的柔和时光感，透明度较低，不干扰登录卡片阅读。
   position: absolute;
   inset: -18%;
   z-index: 0;
@@ -160,7 +133,6 @@ async function submit() {
 }
 
 .auth-page::after {
-  // 细密点阵与刻度线隐喻时间流转，层级放在背景最底部，仅提供轻量装饰。
   position: absolute;
   inset: 0;
   z-index: 0;

@@ -39,6 +39,10 @@ const rules: FormRules<ShipOrderRequest> = {
 }
 const orderStatusOptions = computed(() => Object.entries(ORDER_STATUS_LABELS) as Array<[OrderStatus, string]>)
 const paymentStatusOptions = computed(() => Object.entries(ORDER_PAYMENT_STATUS_LABELS) as Array<[OrderPaymentStatus, string]>)
+function getOrderStatusLabel(status: OrderStatus) { return ORDER_STATUS_LABELS[status] }
+function getOrderStatusTagType(status: OrderStatus) { return ORDER_STATUS_TAG_TYPES[status] }
+function getPaymentStatusLabel(status: OrderPaymentStatus) { return ORDER_PAYMENT_STATUS_LABELS[status] }
+function getPaymentStatusTagType(status: OrderPaymentStatus) { return ORDER_PAYMENT_STATUS_TAG_TYPES[status] }
 
 async function loadOrders() {
   loading.value = true
@@ -142,8 +146,8 @@ onMounted(loadOrders)
         <el-table-column label="订单" min-width="220"><template #default="{ row }"><div class="name">{{ row.orderNo }}</div><div class="meta">{{ row.tradeNo }}</div></template></el-table-column>
         <el-table-column label="买家" width="120"><template #default="{ row }"><div>{{ row.buyer.nickname }}</div><div class="meta">{{ row.buyer.username }}</div></template></el-table-column>
         <el-table-column label="商品摘要" min-width="260"><template #default="{ row }"><div v-for="item in row.itemSummary" :key="item.productName + item.skuName" class="item-line">{{ item.productName }} · {{ item.skuName }} x{{ item.quantity }}</div></template></el-table-column>
-        <el-table-column label="订单状态" width="110"><template #default="{ row }"><el-tag :type="ORDER_STATUS_TAG_TYPES[row.orderStatus]" effect="light">{{ ORDER_STATUS_LABELS[row.orderStatus] }}</el-tag></template></el-table-column>
-        <el-table-column label="支付状态" width="110"><template #default="{ row }"><el-tag :type="ORDER_PAYMENT_STATUS_TAG_TYPES[row.paymentStatus]" effect="light">{{ ORDER_PAYMENT_STATUS_LABELS[row.paymentStatus] }}</el-tag></template></el-table-column>
+        <el-table-column label="订单状态" width="110"><template #default="{ row }"><el-tag :type="getOrderStatusTagType(row.orderStatus)" effect="light">{{ getOrderStatusLabel(row.orderStatus) }}</el-tag></template></el-table-column>
+        <el-table-column label="支付状态" width="110"><template #default="{ row }"><el-tag :type="getPaymentStatusTagType(row.paymentStatus)" effect="light">{{ getPaymentStatusLabel(row.paymentStatus) }}</el-tag></template></el-table-column>
         <el-table-column prop="payableAmount" label="应付金额" width="110" />
         <el-table-column prop="refundAmount" label="退款金额" width="110" />
         <el-table-column prop="createdAt" label="创建时间" width="210" />

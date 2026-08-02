@@ -1,47 +1,50 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, type FormRules } from 'element-plus'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import logoUrl from '@/assets/shiguang-logo.png'
+import { useAuthStore } from '@/stores/auth'
 
 interface RegisterForm {
-  shopName: string
+  nickname: string
   username: string
   phone: string
+  email: string
   password: string
   confirmPassword: string
 }
 
 const router = useRouter()
+const authStore = useAuthStore()
+const formRef = ref<FormInstance>()
 const loading = ref(false)
 
 const form = reactive<RegisterForm>({
-  shopName: '',
+  nickname: '',
   username: '',
   phone: '',
+  email: '',
   password: '',
   confirmPassword: ''
 })
 
 const rules: FormRules<RegisterForm> = {
-  shopName: [{ required: true, message: '请输入店铺名称', trigger: 'blur' }],
+  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
   username: [
-    { required: true, message: '请输入商家账号', trigger: 'blur' },
-    { pattern: /^[a-zA-Z][a-zA-Z0-9_]{2,19}$/, message: '账号需以字母开头，支持字母数字下划线，3-20 位', trigger: 'blur' }
+    { required: true, message: '请输入账号', trigger: 'blur' },
+    { pattern: /^[a-zA-Z][a-zA-Z0-9_]{3,63}$/, message: '账号需以字母开头，支持字母数字下划线，4-64 位', trigger: 'blur' }
   ],
-  phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
-  ],
+  phone: [{ min: 6, max: 32, message: '手机号长度需为 6-32 位', trigger: 'blur' }],
+  email: [{ type: 'email', message: '请输入正确的邮箱', trigger: 'blur' }],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度需为 6-20 位', trigger: 'blur' }
+    { min: 8, max: 72, message: '密码长度需为 8-72 位', trigger: 'blur' },
+    { pattern: /^(?=.*[A-Za-z])(?=.*[0-9]).+$/, message: '密码需同时包含字母和数字', trigger: 'blur' }
   ],
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
     {
       validator: (_rule, value: string, callback) => {
-        // 注册页只开放商家账号注册，因此这里仅校验两次密码一致，不生成管理员身份。
         if (value !== form.password) callback(new Error('两次输入的密码不一致'))
         else callback()
       },
@@ -51,14 +54,22 @@ const rules: FormRules<RegisterForm> = {
 }
 
 async function submit() {
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) return
+
   loading.value = true
   try {
-    await new Promise((resolve) => window.setTimeout(resolve, 240))
-    localStorage.setItem('shiguang-merchant-register-demo', JSON.stringify({ shopName: form.shopName, username: form.username, phone: form.phone }))
-    ElMessage.success('商家账号注册成功，请返回登录页使用商家身份登录')
+    await authStore.register({
+      username: form.username.trim(),
+      password: form.password,
+      nickname: form.nickname.trim(),
+      phone: form.phone.trim() || undefined,
+      email: form.email.trim() || undefined
+    })
+    ElMessage.success('账号注册成功，请返回登录页登录')
     router.replace('/login')
-  } catch {
-    ElMessage.error('注册失败，请稍后再试')
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '注册失败，请稍后再试')
   } finally {
     loading.value = false
   }
@@ -71,28 +82,31 @@ async function submit() {
       <section class="auth-brand">
         <img :src="logoUrl" alt="时光电商平台" />
         <div>
-          <h1>商家账号注册</h1>
-          <p>管理员账号由平台线下分配，前端仅开放商家注册</p>
+          <h1>账号注册</h1>
+          <p>注册后可登录，商家店铺由平台开通或分配</p>
         </div>
       </section>
 
-      <el-form :model="form" :rules="rules" label-position="top" @keyup.enter="submit">
-        <el-form-item label="店铺名称" prop="shopName">
-          <el-input v-model="form.shopName" clearable placeholder="请输入店铺名称" />
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @keyup.enter="submit">
+        <el-form-item label="昵称" prop="nickname">
+          <el-input v-model="form.nickname" clearable placeholder="请输入昵称" />
         </el-form-item>
-        <el-form-item label="商家账号" prop="username">
-          <el-input v-model="form.username" clearable placeholder="字母开头，3-20 位" />
+        <el-form-item label="账号" prop="username">
+          <el-input v-model="form.username" clearable placeholder="字母开头，4-64 位" />
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
-          <el-input v-model="form.phone" clearable maxlength="11" placeholder="请输入负责人手机号" />
+          <el-input v-model="form.phone" clearable placeholder="可选，6-32 位" />
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email" clearable placeholder="可选，用于账号联系" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" show-password placeholder="请输入 6-20 位密码" />
+          <el-input v-model="form.password" type="password" show-password placeholder="8-72 位，需包含字母和数字" />
         </el-form-item>
         <el-form-item label="确认密码" prop="confirmPassword">
           <el-input v-model="form.confirmPassword" type="password" show-password placeholder="请再次输入密码" />
         </el-form-item>
-        <el-button type="primary" :loading="loading" class="auth-button" @click="submit">注册商家账号</el-button>
+        <el-button type="primary" :loading="loading" class="auth-button" @click="submit">注册账号</el-button>
       </el-form>
 
       <div class="auth-footer">
@@ -118,7 +132,6 @@ async function submit() {
 }
 
 .auth-page::before {
-  // 底层虚化光晕延续登录页的晨昏时光氛围，保持低透明度，避免影响注册表单填写。
   position: absolute;
   inset: -18%;
   z-index: 0;
@@ -131,7 +144,6 @@ async function submit() {
 }
 
 .auth-page::after {
-  // 点阵与淡刻度统一登录页视觉，表达时间流转，同时放在底层不遮挡卡片。
   position: absolute;
   inset: 0;
   z-index: 0;

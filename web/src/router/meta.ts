@@ -1,3 +1,5 @@
+import type { PermissionCode } from '@/types/admin'
+
 export type AppLayout = 'merchant' | 'admin' | 'blank'
 
 declare module 'vue-router' {
@@ -5,7 +7,7 @@ declare module 'vue-router' {
     title: string
     layout: AppLayout
     requiresAuth?: boolean
-    permissions?: string[]
+    permissions?: PermissionCode[] | string[]
     role?: string
     shopScoped?: boolean
   }
