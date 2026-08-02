@@ -32,7 +32,7 @@ function createEmptyForm(): PlatformAccount {
     username: '',
     displayName: '',
     role: 'OPERATION_ADMIN',
-    permissions: ['admin:dashboard:view'],
+    permissions: ['platform:operation:read'],
     status: 'ACTIVE',
     phone: '',
     ownerShopName: '',
@@ -71,7 +71,8 @@ async function submit() {
 }
 
 async function freeze(row: PlatformAccount) {
-  await setAccountStatus(row.id, row.status === 'ACTIVE' ? 'FROZEN' : 'ACTIVE')
+  const nextStatus = row.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE'
+  await setAccountStatus(row.id, nextStatus)
   ElMessage.success('账号状态已更新')
   loadData()
 }
@@ -93,7 +94,7 @@ onMounted(loadData)
     <SearchPanel>
       <el-form>
         <el-form-item label="关键词"><el-input v-model="query.keyword" placeholder="账号/姓名/店铺" clearable /></el-form-item>
-        <el-form-item label="状态"><el-select v-model="query.status" clearable><el-option label="正常" value="ACTIVE" /><el-option label="冻结" value="FROZEN" /></el-select></el-form-item>
+        <el-form-item label="状态"><el-select v-model="query.status" clearable><el-option label="正常" value="ACTIVE" /><el-option label="停用" value="DISABLED" /><el-option label="锁定" value="LOCKED" /></el-select></el-form-item>
         <el-button type="primary" @click="loadData">查询</el-button>
       </el-form>
     </SearchPanel>
@@ -112,7 +113,7 @@ onMounted(loadData)
           </template>
         </el-table-column>
         <el-table-column label="状态">
-          <template #default="{ row }"><StatusTag :label="row.status === 'ACTIVE' ? '正常' : '冻结'" :type="row.status === 'ACTIVE' ? 'success' : 'danger'" /></template>
+          <template #default="{ row }"><StatusTag :label="row.status === 'ACTIVE' ? '正常' : row.status === 'DISABLED' ? '停用' : '锁定'" :type="row.status === 'ACTIVE' ? 'success' : 'danger'" /></template>
         </el-table-column>
         <el-table-column label="操作" width="260">
           <template #default="{ row }">

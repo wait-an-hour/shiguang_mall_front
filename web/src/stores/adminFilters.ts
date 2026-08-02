@@ -22,7 +22,7 @@ export const useAdminFiltersStore = defineStore('adminFilters', () => {
   }, { deep: true })
 
   function getFilter(key: string): ListQuery {
-    return { page: 1, pageSize: 10, ...(filters[key] ?? {}) }
+    return { page: 1, pageSize: 20, ...(filters[key] ?? {}) }
   }
 
   function setFilter(key: string, value: ListQuery) {

@@ -10,15 +10,13 @@ const router = useRouter()
 const auth = useAdminAuthStore()
 
 const menus = [
-  { title: '首页概览', path: '/admin', permission: 'admin:dashboard:view' },
-  { title: '角色管理', path: '/admin/rbac/roles', permission: 'admin:rbac:role' },
-  { title: '账号管理', path: '/admin/rbac/accounts', permission: 'admin:rbac:account' },
-  { title: '分类管理', path: '/admin/catalog/categories', permission: 'admin:catalog:category' },
-  { title: '品牌管理', path: '/admin/catalog/brands', permission: 'admin:catalog:brand' },
-  { title: '商品管理', path: '/admin/products', permission: 'admin:product:view' },
-  { title: '库存总览', path: '/admin/inventory', permission: 'admin:inventory:view' },
-  { title: '订单管理', path: '/admin/orders', permission: 'admin:order:view' },
-  { title: '售后审核', path: '/admin/after-sales', permission: 'admin:after-sale:audit' }
+  { title: '首页概览', path: '/admin', permission: 'platform:operation:read' },
+  { title: '角色管理', path: '/admin/rbac/roles', permission: 'platform:rbac:manage' },
+  { title: '账号管理', path: '/admin/rbac/accounts', permission: 'platform:rbac:manage' },
+  { title: '分类管理', path: '/admin/catalog/categories', permission: 'platform:catalog:manage' },
+  { title: '品牌管理', path: '/admin/catalog/brands', permission: 'platform:catalog:manage' },
+  { title: '商品审核', path: '/admin/products', permission: 'platform:product:audit' },
+  { title: '平台运营', path: '/admin/orders', permission: 'platform:operation:read' }
 ] as const
 
 const visibleMenus = computed(() => menus.filter((item) => auth.hasPermissions([item.permission])))

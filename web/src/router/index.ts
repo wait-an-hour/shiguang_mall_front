@@ -224,18 +224,18 @@ const routes: RouteRecordRaw[] = [
     meta: {
       ...adminRouteMeta,
       title: '平台后台',
-      permissions: ['admin:dashboard:view']
+      permissions: ['platform:operation:read']
     },
     children: [
-      { path: '', name: ROUTE_NAME.AdminDashboard, component: () => import('@/views/admin/AdminDashboardView.vue'), meta: { ...adminRouteMeta, title: '后台首页', permissions: ['admin:dashboard:view'] } },
-      { path: 'rbac/roles', name: ROUTE_NAME.AdminRoles, component: () => import('@/views/admin/RoleManageView.vue'), meta: { ...adminRouteMeta, title: '角色管理', permissions: ['admin:rbac:role'] } },
-      { path: 'rbac/accounts', name: ROUTE_NAME.AdminAccounts, component: () => import('@/views/admin/AccountManageView.vue'), meta: { ...adminRouteMeta, title: '账号管理', permissions: ['admin:rbac:account'] } },
-      { path: 'catalog/categories', name: ROUTE_NAME.AdminCategories, component: () => import('@/views/admin/CategoryManageView.vue'), meta: { ...adminRouteMeta, title: '分类管理', permissions: ['admin:catalog:category'] } },
-      { path: 'catalog/brands', name: ROUTE_NAME.AdminBrands, component: () => import('@/views/admin/BrandManageView.vue'), meta: { ...adminRouteMeta, title: '品牌管理', permissions: ['admin:catalog:brand'] } },
-      { path: 'products', name: ROUTE_NAME.AdminProducts, component: () => import('@/views/admin/ProductManageView.vue'), meta: { ...adminRouteMeta, title: '商品管理', permissions: ['admin:product:view'] } },
-      { path: 'inventory', name: ROUTE_NAME.AdminInventory, component: () => import('@/views/admin/InventoryOverviewView.vue'), meta: { ...adminRouteMeta, title: '库存总览', permissions: ['admin:inventory:view'] } },
-      { path: 'orders', name: ROUTE_NAME.AdminOrders, component: () => import('@/views/admin/OrderManageView.vue'), meta: { ...adminRouteMeta, title: '订单管理', permissions: ['admin:order:view'] } },
-      { path: 'after-sales', name: ROUTE_NAME.AdminAfterSales, component: () => import('@/views/admin/AfterSaleReviewView.vue'), meta: { ...adminRouteMeta, title: '售后审核', permissions: ['admin:after-sale:audit'] } }
+      { path: '', name: ROUTE_NAME.AdminDashboard, component: () => import('@/views/admin/AdminDashboardView.vue'), meta: { ...adminRouteMeta, title: '后台首页', permissions: ['platform:operation:read'] } },
+      { path: 'rbac/roles', name: ROUTE_NAME.AdminRoles, component: () => import('@/views/admin/RoleManageView.vue'), meta: { ...adminRouteMeta, title: '角色管理', permissions: ['platform:rbac:manage'] } },
+      { path: 'rbac/accounts', name: ROUTE_NAME.AdminAccounts, component: () => import('@/views/admin/AccountManageView.vue'), meta: { ...adminRouteMeta, title: '账号管理', permissions: ['platform:rbac:manage'] } },
+      { path: 'catalog/categories', name: ROUTE_NAME.AdminCategories, component: () => import('@/views/admin/CategoryManageView.vue'), meta: { ...adminRouteMeta, title: '分类管理', permissions: ['platform:catalog:manage'] } },
+      { path: 'catalog/brands', name: ROUTE_NAME.AdminBrands, component: () => import('@/views/admin/BrandManageView.vue'), meta: { ...adminRouteMeta, title: '品牌管理', permissions: ['platform:catalog:manage'] } },
+      { path: 'products', name: ROUTE_NAME.AdminProducts, component: () => import('@/views/admin/ProductManageView.vue'), meta: { ...adminRouteMeta, title: '商品审核', permissions: ['platform:product:audit'] } },
+      { path: 'inventory', name: ROUTE_NAME.AdminInventory, component: () => import('@/views/admin/InventoryOverviewView.vue'), meta: { ...adminRouteMeta, title: '平台运营', permissions: ['platform:operation:read'] } },
+      { path: 'orders', name: ROUTE_NAME.AdminOrders, component: () => import('@/views/admin/OrderManageView.vue'), meta: { ...adminRouteMeta, title: '平台运营', permissions: ['platform:operation:read'] } },
+      { path: 'after-sales', name: ROUTE_NAME.AdminAfterSales, component: () => import('@/views/admin/AfterSaleReviewView.vue'), meta: { ...adminRouteMeta, title: '平台运营', permissions: ['platform:operation:read'] } }
     ]
   },
   {

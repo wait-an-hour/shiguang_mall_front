@@ -29,16 +29,12 @@ const adminAccounts: Record<string, { password: string; user: PlatformUser }> = 
       displayName: '平台管理员',
       role: 'SUPER_ADMIN',
       permissions: [
-        'admin:dashboard:view',
-        'admin:rbac:role',
-        'admin:rbac:account',
-        'admin:catalog:category',
-        'admin:catalog:brand',
-        'admin:product:view',
-        'admin:product:audit',
-        'admin:inventory:view',
-        'admin:order:view',
-        'admin:after-sale:audit'
+        'platform:rbac:manage',
+        'platform:catalog:manage',
+        'platform:product:audit',
+        'platform:product:ban',
+        'platform:operation:read',
+        'platform:task:execute'
       ],
       status: 'ACTIVE'
     }
@@ -51,13 +47,10 @@ const adminAccounts: Record<string, { password: string; user: PlatformUser }> = 
       displayName: '运营管理员',
       role: 'OPERATION_ADMIN',
       permissions: [
-        'admin:dashboard:view',
-        'admin:catalog:category',
-        'admin:catalog:brand',
-        'admin:product:view',
-        'admin:product:audit',
-        'admin:inventory:view',
-        'admin:order:view'
+        'platform:catalog:manage',
+        'platform:product:audit',
+        'platform:product:ban',
+        'platform:operation:read'
       ],
       status: 'ACTIVE'
     }
@@ -69,7 +62,7 @@ const adminAccounts: Record<string, { password: string; user: PlatformUser }> = 
       username: 'audit',
       displayName: '售后审核员',
       role: 'AUDIT_ADMIN',
-      permissions: ['admin:dashboard:view', 'admin:order:view', 'admin:after-sale:audit'],
+      permissions: ['platform:operation:read'],
       status: 'ACTIVE'
     }
   }

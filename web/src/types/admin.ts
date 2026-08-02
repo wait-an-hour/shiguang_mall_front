@@ -3,22 +3,18 @@ export type Money = string
 export type Timestamp = string
 
 export type AdminRole = 'SUPER_ADMIN' | 'OPERATION_ADMIN' | 'AUDIT_ADMIN' | 'MERCHANT'
-export type AccountStatus = 'ACTIVE' | 'FROZEN'
+export type AccountStatus = 'ACTIVE' | 'DISABLED' | 'LOCKED'
 export type CommonStatus = 'ENABLED' | 'DISABLED'
-export type ProductStatus = 'ON_SHELF' | 'OFF_SHELF' | 'REJECTED'
+export type ProductStatus = 'PENDING_REVIEW' | 'ON_SHELF' | 'OFF_SHELF' | 'REJECTED' | 'BANNED'
 export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED'
 export type AfterSaleStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 export type PermissionCode =
-  | 'admin:dashboard:view'
-  | 'admin:rbac:role'
-  | 'admin:rbac:account'
-  | 'admin:catalog:category'
-  | 'admin:catalog:brand'
-  | 'admin:product:view'
-  | 'admin:product:audit'
-  | 'admin:inventory:view'
-  | 'admin:order:view'
-  | 'admin:after-sale:audit'
+  | 'platform:rbac:manage'
+  | 'platform:catalog:manage'
+  | 'platform:product:audit'
+  | 'platform:product:ban'
+  | 'platform:operation:read'
+  | 'platform:task:execute'
   | 'shop:home:view'
 
 export interface PlatformUser {
@@ -116,6 +112,7 @@ export interface PageResult<T> {
   page: number
   pageSize: number
   total: number
+  totalPages: number
 }
 
 export interface ListQuery {
