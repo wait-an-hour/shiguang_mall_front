@@ -21,6 +21,8 @@ export const ROUTE_NAME = {
   AdminAccounts: 'AdminAccounts',
   AdminCategories: 'AdminCategories',
   AdminBrands: 'AdminBrands',
+  AdminShops: 'AdminShops',
+  AdminShopMembers: 'AdminShopMembers',
   AdminProducts: 'AdminProducts',
   AdminInventory: 'AdminInventory',
   AdminOrders: 'AdminOrders',

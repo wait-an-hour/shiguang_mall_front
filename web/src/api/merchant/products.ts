@@ -173,23 +173,26 @@ function toDetail(product: BackendShopProductDetailView): ShopProductDetailView 
 
 function toCreatePayload(data: CreateProductRequest) {
   return {
-    categoryId: data.categoryId,
-    brandId: data.brandId,
-    productName: data.productName,
-    subtitle: data.subtitle,
-    coverUrl: data.coverImageUrl,
+    categoryId: data.categoryId.trim(),
+    brandId: data.brandId?.trim() || null,
+    productName: data.productName.trim(),
+    subtitle: data.subtitle?.trim() || null,
+    coverUrl: data.coverImageUrl?.trim() || null,
     galleryUrls: data.galleryImageUrls,
     detailHtml: data.detailHtml,
-    packingList: data.packageList,
-    serviceNote: data.serviceNotes,
-    attributes: [],
+    packingList: data.packageList?.trim() || null,
+    serviceNote: data.serviceNotes?.trim() || null,
+    attributes: data.attributes.map((attribute) => ({
+      attributeId: attribute.name.trim(),
+      value: attribute.value.trim()
+    })),
     skus: data.skus.map((sku) => ({
-      skuName: sku.skuName,
-      spec: { 默认: sku.skuName },
-      salePrice: sku.salePrice,
-      marketPrice: sku.marketPrice,
-      barcode: sku.barcode,
-      imageUrl: sku.imageUrl
+      skuName: sku.skuName.trim(),
+      spec: { default: sku.skuName.trim() },
+      salePrice: sku.salePrice.trim(),
+      marketPrice: sku.marketPrice.trim() || null,
+      barcode: sku.barcode?.trim() || null,
+      imageUrl: sku.imageUrl?.trim() || null
     }))
   }
 }
@@ -244,9 +247,9 @@ export async function createMerchantSku(shopId: Id, spuId: Id, data: CreateSkuRe
     skuName: data.skuName,
     spec: { 默认: data.skuName },
     salePrice: data.salePrice,
-    marketPrice: data.marketPrice,
-    barcode: data.barcode,
-    imageUrl: data.imageUrl,
+    marketPrice: data.marketPrice?.trim() || null,
+    barcode: data.barcode?.trim() || null,
+    imageUrl: data.imageUrl?.trim() || null,
     contentVersion: 0
   }) as unknown as BackendShopProductDetailView
   return toDetail(product).skus.at(-1) as ShopSkuView

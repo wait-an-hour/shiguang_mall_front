@@ -12,9 +12,11 @@ const auth = useAdminAuthStore()
 const menus = [
   { title: '首页概览', path: '/admin', permission: 'admin:dashboard:view' },
   { title: '角色管理', path: '/admin/rbac/roles', permission: 'admin:rbac:role' },
-  { title: '账号管理', path: '/admin/rbac/accounts', permission: 'admin:rbac:account' },
+  { title: '平台账号', path: '/admin/rbac/accounts', permission: 'admin:rbac:account' },
+  { title: '店铺成员', path: '/admin/shops/members', permission: 'admin:shop:manage' },
   { title: '分类管理', path: '/admin/catalog/categories', permission: 'admin:catalog:category' },
   { title: '品牌管理', path: '/admin/catalog/brands', permission: 'admin:catalog:brand' },
+  { title: '店铺管理', path: '/admin/shops', permission: 'admin:shop:manage' },
   { title: '商品管理', path: '/admin/products', permission: 'admin:product:view' },
   { title: '库存总览', path: '/admin/inventory', permission: 'admin:inventory:view' },
   { title: '订单管理', path: '/admin/orders', permission: 'admin:order:view' },

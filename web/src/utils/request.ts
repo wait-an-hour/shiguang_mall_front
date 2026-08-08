@@ -51,8 +51,11 @@ function unwrapResponse<T>(payload: ApiResponse<T>) {
 request.interceptors.request.use((config) => {
   const adminAuth = useAdminAuthStore()
   const userAuth = useAuthStore()
-  const token = adminAuth.token || userAuth.token
+  const requestToken = config.headers?.satoken
+  const isLoginRequest = config.url?.endsWith('/auth/login')
+  const token = requestToken || (isLoginRequest ? '' : adminAuth.token || userAuth.token)
   if (token) config.headers.satoken = token
+  else delete config.headers.satoken
   return config
 })
 

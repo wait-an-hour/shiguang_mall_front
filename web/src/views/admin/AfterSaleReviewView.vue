@@ -13,7 +13,7 @@ import type { AfterSaleStatus, PlatformAfterSale } from '@/types/admin'
 const key='afterSales'; const fs=useAdminFiltersStore(); const query=reactive(fs.getFilter(key)); const loading=ref(false); const total=ref(0); const rows=ref<PlatformAfterSale[]>([]); const dialogVisible=ref(false); const current=ref<PlatformAfterSale>(); const audit=reactive<{status:AfterSaleStatus;remark:string}>({status:'APPROVED',remark:''})
 function statusType(status:AfterSaleStatus){return status==='APPROVED'?'success':status==='REJECTED'?'danger':'warning'}
 async function loadData(){loading.value=true;fs.setFilter(key,query);const data=await listAfterSales(query);rows.value=data.items;total.value=data.total;loading.value=false}
-function openAudit(row:PlatformAfterSale,status:AfterSaleStatus){current.value=row;audit.status=status;audit.remark=row.auditRemark??'';dialogVisible.value=true}
+function openAudit(row:PlatformAfterSale,status:'APPROVED'|'REJECTED'){current.value=row;audit.status=status;audit.remark=row.auditRemark??'';dialogVisible.value=true}
 async function submitAudit(){if(!current.value)return;await auditAfterSale(current.value.id,audit.status,audit.remark);ElMessage.success('售后审核记录已保存');dialogVisible.value=false;loadData()}
 onMounted(loadData)
 </script>

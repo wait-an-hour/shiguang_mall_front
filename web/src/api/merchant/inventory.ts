@@ -100,8 +100,9 @@ function idempotencyKey() {
 }
 
 export async function getMerchantInventory(shopId: Id, query: MerchantInventoryQuery = {}) {
+  const stockState = query.stockState === 'LOW' ? 'LOW_STOCK' : query.stockState === 'OUT' ? 'OUT_OF_STOCK' : query.stockState === 'NORMAL' ? 'IN_STOCK' : undefined
   const data = await request.get<PageView<BackendInventoryItemView>>(`/shops/${shopId}/inventory`, {
-    params: { ...query, stockState: query.stockState || undefined }
+    params: { ...query, stockState }
   }) as unknown as PageView<BackendInventoryItemView>
   return { ...data, items: data.items.map(toInventoryItem) }
 }

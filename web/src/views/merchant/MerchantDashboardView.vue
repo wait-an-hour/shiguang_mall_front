@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { computed, shallowRef } from 'vue'
+import { computed, onMounted, shallowRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Box, Goods, List, Operation } from '@element-plus/icons-vue'
 import { RECENT_ORDER_STATUS_LABELS } from '../../constants/merchant'
 import { ROUTE_NAME } from '../../constants/routes'
+import { getMerchantAfterSales } from '../../api/merchant/afterSales'
+import { getMerchantInventory } from '../../api/merchant/inventory'
+import { getMerchantOrders } from '../../api/merchant/orders'
+import { getMerchantProducts } from '../../api/merchant/products'
 import { useMerchantStore } from '../../stores/merchant'
 import type { DashboardTask, LowStockSku, RecentMerchantOrder } from '../../types/merchant'
 import type { PageMetric } from '../../types/common'
@@ -13,124 +17,10 @@ const merchantStore = useMerchantStore()
 
 const loading = shallowRef(false)
 const errorMessage = shallowRef('')
-
-const metrics = shallowRef<PageMetric[]>([
-  {
-    key: 'pendingShipment',
-    label: '待发货订单',
-    value: '18',
-    description: '需要及时处理，避免履约超时',
-    tone: 'warning',
-    routeName: ROUTE_NAME.MerchantOrderList,
-    query: { status: 'PENDING_SHIPMENT' }
-  },
-  {
-    key: 'onShelfProducts',
-    label: '在售商品',
-    value: '36',
-    description: '当前店铺可售 SPU 数量',
-    tone: 'primary',
-    routeName: ROUTE_NAME.MerchantProductList
-  },
-  {
-    key: 'lowStock',
-    label: '库存预警',
-    value: '9',
-    description: '建议补货或调整安全库存',
-    tone: 'danger',
-    routeName: ROUTE_NAME.MerchantInventoryList,
-    query: { stock: 'LOW' }
-  },
-  {
-    key: 'afterSale',
-    label: '售后待处理',
-    value: '3',
-    description: '待审核或待确认退货',
-    tone: 'info',
-    routeName: ROUTE_NAME.MerchantAfterSaleList
-  }
-])
-
-const tasks = shallowRef<DashboardTask[]>([
-  {
-    key: 'ship',
-    label: '待发货订单',
-    count: 18,
-    description: '核对库存、收货地址后完成发货',
-    tone: 'warning',
-    routeName: ROUTE_NAME.MerchantOrderList,
-    query: { status: 'PENDING_SHIPMENT' }
-  },
-  {
-    key: 'stock',
-    label: '低库存 SKU',
-    count: 9,
-    description: '库存低于安全线，建议补货或下架',
-    tone: 'danger',
-    routeName: ROUTE_NAME.MerchantInventoryList,
-    query: { stock: 'LOW' }
-  },
-  {
-    key: 'review',
-    label: '商品草稿',
-    count: 6,
-    description: '完善商品资料后可提交平台审核',
-    tone: 'info',
-    routeName: ROUTE_NAME.MerchantProductList,
-    query: { status: 'DRAFT' }
-  }
-])
-
-const recentOrders = shallowRef<RecentMerchantOrder[]>([
-  {
-    id: 'ORDER202607310001',
-    orderNo: 'SO202607310001',
-    buyerName: '林同学',
-    amount: '4299.00',
-    status: 'PENDING_SHIPMENT',
-    createdAt: '2026-07-31T09:24:12.000+08:00'
-  },
-  {
-    id: 'ORDER202607310002',
-    orderNo: 'SO202607310002',
-    buyerName: '陈老师',
-    amount: '268.00',
-    status: 'PENDING_RECEIPT',
-    createdAt: '2026-07-31T08:18:46.000+08:00'
-  },
-  {
-    id: 'ORDER202607300018',
-    orderNo: 'SO202607300018',
-    buyerName: '王同学',
-    amount: '99.00',
-    status: 'AFTER_SALE',
-    createdAt: '2026-07-30T20:11:34.000+08:00'
-  }
-])
-
-const lowStockSkus = shallowRef<LowStockSku[]>([
-  {
-    id: 'SKU202607260001',
-    skuNo: 'IP16-BLK-256',
-    productName: 'iPhone 16 黑色 256GB',
-    availableStock: 4,
-    lockedStock: 2
-  },
-  {
-    id: 'SKU202607260002',
-    skuNo: 'CASE-MAG-BLUE',
-    productName: '磁吸保护壳 雾蓝色',
-    availableStock: 7,
-    lockedStock: 1
-  },
-  {
-    id: 'SKU202607260003',
-    skuNo: 'CABLE-C-1M',
-    productName: 'Type-C 编织数据线 1m',
-    availableStock: 11,
-    lockedStock: 5
-  }
-])
+const metrics = shallowRef<PageMetric[]>([])
+const tasks = shallowRef<DashboardTask[]>([])
+const recentOrders = shallowRef<RecentMerchantOrder[]>([])
+const lowStockSkus = shallowRef<LowStockSku[]>([])
 
 const hasError = computed(() => Boolean(errorMessage.value))
 const shopName = computed(() => merchantStore.currentShop?.name ?? '当前店铺')
@@ -148,10 +38,134 @@ function goRoute(routeName: string, query?: Record<string, string>) {
   })
 }
 
-function reloadDashboard() {
-  loading.value = false
-  errorMessage.value = ''
+function toRecentOrder(item: { id: string; orderNo: string; buyer: { nickname: string }; payableAmount: string; orderStatus: string; availableActions?: string[]; createdAt: string }): RecentMerchantOrder {
+  const status = item.availableActions?.includes('VIEW_AFTER_SALE')
+    ? 'AFTER_SALE'
+    : item.orderStatus === 'PENDING_RECEIPT'
+      ? 'PENDING_RECEIPT'
+      : item.orderStatus === 'COMPLETED'
+        ? 'COMPLETED'
+        : 'PENDING_SHIPMENT'
+  return {
+    id: item.id,
+    orderNo: item.orderNo,
+    buyerName: item.buyer.nickname,
+    amount: item.payableAmount,
+    status,
+    createdAt: item.createdAt
+  }
 }
+
+async function loadDashboard() {
+  const shopId = merchantStore.currentShopId
+  if (!shopId) {
+    errorMessage.value = '未选择店铺，请先进入店铺选择页。'
+    return
+  }
+
+  loading.value = true
+  errorMessage.value = ''
+  try {
+    const [pendingShipment, onShelfProducts, lowStock, pendingAfterSale, draftProducts, recentOrderPage, lowStockPage] = await Promise.all([
+      getMerchantOrders(shopId, { orderStatus: 'PENDING_SHIPMENT', page: 1, pageSize: 1 }),
+      getMerchantProducts(shopId, { status: 'ON_SHELF', page: 1, pageSize: 1 }),
+      getMerchantInventory(shopId, { stockState: 'LOW', page: 1, pageSize: 1 }),
+      getMerchantAfterSales(shopId, { status: 'PENDING', page: 1, pageSize: 1 }).catch(() => ({ items: [], page: 1, pageSize: 1, total: 0, totalPages: 0 })),
+      getMerchantProducts(shopId, { status: 'DRAFT', page: 1, pageSize: 1 }),
+      getMerchantOrders(shopId, { page: 1, pageSize: 3 }),
+      getMerchantInventory(shopId, { stockState: 'LOW', page: 1, pageSize: 3 })
+    ])
+
+    metrics.value = [
+      {
+        key: 'pendingShipment',
+        label: '待发货订单',
+        value: String(pendingShipment.total),
+        description: '需要及时处理，避免履约超时',
+        tone: 'warning',
+        routeName: ROUTE_NAME.MerchantOrderList,
+        query: { status: 'PENDING_SHIPMENT' }
+      },
+      {
+        key: 'onShelfProducts',
+        label: '在售商品',
+        value: String(onShelfProducts.total),
+        description: '当前店铺可售 SPU 数量',
+        tone: 'primary',
+        routeName: ROUTE_NAME.MerchantProductList
+      },
+      {
+        key: 'lowStock',
+        label: '库存预警',
+        value: String(lowStock.total),
+        description: '建议补货或调整安全库存',
+        tone: 'danger',
+        routeName: ROUTE_NAME.MerchantInventoryList,
+        query: { stockState: 'LOW' }
+      },
+      {
+        key: 'afterSale',
+        label: '售后待处理',
+        value: String(pendingAfterSale.total),
+        description: '待审核或待确认退货',
+        tone: 'info',
+        routeName: ROUTE_NAME.MerchantAfterSaleList
+      }
+    ]
+
+    tasks.value = [
+      {
+        key: 'ship',
+        label: '待发货订单',
+        count: pendingShipment.total,
+        description: '核对库存、收货地址后完成发货',
+        tone: 'warning',
+        routeName: ROUTE_NAME.MerchantOrderList,
+        query: { status: 'PENDING_SHIPMENT' }
+      },
+      {
+        key: 'stock',
+        label: '低库存 SKU',
+        count: lowStock.total,
+        description: '库存低于安全线，建议补货或下架',
+        tone: 'danger',
+        routeName: ROUTE_NAME.MerchantInventoryList,
+        query: { stockState: 'LOW' }
+      },
+      {
+        key: 'review',
+        label: '商品草稿',
+        count: draftProducts.total,
+        description: '完善商品资料后可提交平台审核',
+        tone: 'info',
+        routeName: ROUTE_NAME.MerchantProductList,
+        query: { status: 'DRAFT' }
+      }
+    ]
+
+    recentOrders.value = recentOrderPage.items.map(toRecentOrder)
+    lowStockSkus.value = lowStockPage.items.map((item) => ({
+      id: item.skuId,
+      skuNo: item.skuNo,
+      productName: item.productName,
+      availableStock: item.availableStock,
+      lockedStock: item.lockedStock
+    }))
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '工作台加载失败'
+  } finally {
+    loading.value = false
+  }
+}
+
+function reloadDashboard() {
+  void loadDashboard()
+}
+
+onMounted(loadDashboard)
+watch(() => merchantStore.currentShopId, () => {
+  void loadDashboard()
+})
 </script>
 
 <template>
@@ -263,7 +277,7 @@ function reloadDashboard() {
           <template #header>
             <div class="card-header">
               <span>库存预警</span>
-              <el-button text type="primary" @click="goRoute(ROUTE_NAME.MerchantInventoryList, { stock: 'LOW' })">
+              <el-button text type="primary" @click="goRoute(ROUTE_NAME.MerchantInventoryList, { stockState: 'LOW' })">
                 处理库存
               </el-button>
             </div>

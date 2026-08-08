@@ -44,6 +44,7 @@ const SUPER_ADMIN_PERMISSIONS: PermissionCode[] = [
   'admin:rbac:account',
   'admin:catalog:category',
   'admin:catalog:brand',
+  'admin:shop:manage',
   'admin:product:view',
   'admin:product:audit',
   'admin:inventory:view',
@@ -67,10 +68,11 @@ function toPermissions(current: CurrentUserView): PermissionCode[] {
   })
 
   if (mapped.includes('admin:catalog:category')) mapped.push('admin:catalog:brand')
+  if (mapped.includes('admin:shop:manage')) mapped.push('admin:dashboard:view')
   if (mapped.includes('admin:product:audit')) mapped.push('admin:product:view')
   if (mapped.includes('admin:order:view')) mapped.push('admin:dashboard:view', 'admin:inventory:view')
 
-  return Array.from(new Set(mapped.length > 0 ? mapped : ['admin:dashboard:view']))
+  return Array.from(new Set(mapped))
 }
 
 function toPlatformUser(current: CurrentUserView): PlatformUser {
@@ -87,9 +89,14 @@ function toPlatformUser(current: CurrentUserView): PlatformUser {
 export async function loginAdmin(username: string, password: string) {
   const login = await request.post<LoginView>('/auth/login', { username, password }) as unknown as LoginView
   const current = await request.get<CurrentUserView>('/auth/me', { headers: { satoken: login.tokenValue } }) as unknown as CurrentUserView
+  const user = toPlatformUser(current)
+
+  if (user.permissions.length === 0 || user.role === 'MERCHANT') {
+    throw new Error('当前账号不是平台管理员账号')
+  }
 
   return {
     token: login.tokenValue,
-    user: toPlatformUser(current)
+    user
   }
 }

@@ -9,7 +9,7 @@ import { useAdminAuthStore } from '@/stores/adminAuth'
 import { useAuthStore } from '@/stores/auth'
 import { useMerchantStore } from '@/stores/merchant'
 
-type LoginRole = 'SUPER_ADMIN' | 'MERCHANT'
+type LoginRole = 'CUSTOMER' | 'MERCHANT' | 'SUPER_ADMIN'
 
 interface LoginForm {
   role: LoginRole
@@ -26,7 +26,7 @@ const formRef = ref<FormInstance>()
 const loading = ref(false)
 
 const form = reactive<LoginForm>({
-  role: 'SUPER_ADMIN',
+  role: 'MERCHANT',
   username: '',
   password: ''
 })
@@ -52,7 +52,11 @@ async function submit() {
     if (form.role === 'MERCHANT') {
       const currentUser = await merchantAuth.login(form.username.trim(), form.password)
       const firstShop = currentUser.shops[0]
-      if (!firstShop) throw new Error('当前账号没有可管理店铺')
+      if (!firstShop) {
+        ElMessage.warning('当前账号尚未分配店铺，请联系平台管理员开通店铺')
+        await router.replace({ name: ROUTE_NAME.MerchantShopSelect })
+        return
+      }
       merchantStore.setCurrentShop(firstShop.id)
       ElMessage.success('登录成功')
       await router.replace({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: firstShop.id } })
@@ -77,16 +81,16 @@ async function submit() {
       <section class="auth-brand">
         <img :src="logoUrl" alt="时光电商平台" />
         <div>
-          <h1>时光管理中心</h1>
-          <p>请选择管理员或商家身份登录</p>
+          <h1>时光账号登录</h1>
+          <p>注册账号默认为用户账号，商家店铺需由平台开通</p>
         </div>
       </section>
 
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @keyup.enter="submit">
         <el-form-item label="登录身份" prop="role">
           <el-radio-group v-model="form.role">
-            <el-radio-button value="SUPER_ADMIN">管理员</el-radio-button>
             <el-radio-button value="MERCHANT">商家</el-radio-button>
+            <el-radio-button value="SUPER_ADMIN">管理员</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="账号" prop="username">

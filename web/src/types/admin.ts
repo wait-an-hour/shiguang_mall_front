@@ -14,6 +14,7 @@ export type PermissionCode =
   | 'admin:rbac:account'
   | 'admin:catalog:category'
   | 'admin:catalog:brand'
+  | 'admin:shop:manage'
   | 'admin:product:view'
   | 'admin:product:audit'
   | 'admin:inventory:view'
@@ -34,6 +35,28 @@ export interface PlatformAccount extends PlatformUser {
   phone: string
   ownerShopName?: string
   createdAt: Timestamp
+}
+
+export type ShopMemberStatus = 'ACTIVE' | 'DISABLED'
+export type ShopMemberRole = 'SHOP_ADMIN' | 'SHOP_MEMBER'
+
+export interface ShopMemberView {
+  id: Id
+  username: string
+  nickname: string
+  roleCode: ShopMemberRole
+  roleName: string
+  status: ShopMemberStatus
+  phone: string | null
+  createdAt: Timestamp
+}
+
+export interface ShopMemberQuery {
+  keyword?: string
+  roleId?: Id | ''
+  status?: ShopMemberStatus | ''
+  page?: number
+  pageSize?: number
 }
 
 export interface RoleRecord {

@@ -66,7 +66,7 @@ async function submit() {
       phone: form.phone.trim() || undefined,
       email: form.email.trim() || undefined
     })
-    ElMessage.success('账号注册成功，请返回登录页登录')
+    ElMessage.success('商家账号注册成功，请联系平台管理员开通店铺后再登录')
     router.replace('/login')
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '注册失败，请稍后再试')
@@ -82,8 +82,8 @@ async function submit() {
       <section class="auth-brand">
         <img :src="logoUrl" alt="时光电商平台" />
         <div>
-          <h1>账号注册</h1>
-          <p>注册后可登录，商家店铺由平台开通或分配</p>
+          <h1>商家账号预注册</h1>
+          <p>注册后需由平台管理员创建店铺并绑定该账号</p>
         </div>
       </section>
 

@@ -34,13 +34,13 @@ export async function listProducts(query: ListQuery) {
   return { ...data, items } satisfies PageResult<PlatformProduct>
 }
 
-export function setProductStatus(id: Id, status: ProductStatus, reason?: string) {
+export function setProductStatus(id: Id, status: ProductStatus, reason?: string, contentVersion = 0) {
   if (status === 'ON_SHELF') {
-    return request.post(`/platform/products/reviews/${id}/approve`, { contentVersion: 0, reason })
+    return request.post(`/platform/products/reviews/${id}/approve`, { contentVersion, reason })
   }
 
   if (status === 'REJECTED' || status === 'OFF_SHELF') {
-    return request.post(`/platform/products/reviews/${id}/reject`, { contentVersion: 0, reason })
+    return request.post(`/platform/products/reviews/${id}/reject`, { contentVersion, reason })
   }
 
   return mockAdmin.setProductStatus(id, status, reason)

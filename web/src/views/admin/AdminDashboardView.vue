@@ -13,14 +13,19 @@ const recent = ref<PlatformOrder[]>([])
 
 async function loadData() {
   loading.value = true
-  const data = await getAdminDashboard()
-  metrics.value = data.metrics
-  tasks.value = data.tasks
-  recent.value = data.recent
-  loading.value = false
+  try {
+    const data = await getAdminDashboard()
+    metrics.value = data.metrics
+    tasks.value = data.tasks
+    recent.value = data.recent
+  } finally {
+    loading.value = false
+  }
 }
 
-onMounted(loadData)
+onMounted(() => {
+  void loadData()
+})
 </script>
 
 <template>

@@ -192,6 +192,7 @@ onMounted(loadProducts)
 .page-card { border: 1px solid #e5e7eb; border-radius: 10px; }
 .product-cell { display: flex; align-items: center; gap: 12px; }
 .cover { width: 48px; height: 48px; border-radius: 8px; background: #f1f5f9; }
+.cover-placeholder { display: grid; place-items: center; color: #9ca3af; font-size: 12px; text-align: center; }
 .name { color: #111827; font-weight: 600; }
 .meta { margin-top: 4px; color: #6b7280; font-size: 12px; }
 .pagination { display: flex; justify-content: flex-end; margin-top: 16px; }

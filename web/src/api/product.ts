@@ -19,7 +19,7 @@ export interface CategoryAttributeView {
   unit?: string | null
   required: boolean
   filterable: boolean
-  options: string[]
+  options?: string[] | null
   sortOrder: number
   status: 'ENABLED' | 'DISABLED'
 }

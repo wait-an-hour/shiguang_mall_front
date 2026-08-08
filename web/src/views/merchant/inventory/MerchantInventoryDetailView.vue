@@ -129,6 +129,7 @@ onMounted(loadDetail)
 .page-card { border: 1px solid #e5e7eb; border-radius: 10px; }
 .summary { display: grid; grid-template-columns: 72px 1fr auto; align-items: center; gap: 16px; }
 .cover { width: 72px; height: 72px; border-radius: 10px; background: #f1f5f9; }
+.cover-placeholder { display: grid; place-items: center; color: #9ca3af; font-size: 12px; text-align: center; }
 .summary-title { color: #111827; font-size: 16px; font-weight: 600; }
 .stock-desc { margin-top: 16px; }
 .card-header { color: #111827; font-weight: 600; }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import shiguangLogo from '../../assets/shiguang-logo.png'
@@ -13,10 +14,24 @@ const authStore = useAuthStore()
 const merchantStore = useMerchantStore()
 const { manageableShops } = storeToRefs(authStore)
 
+async function refreshShops() {
+  if (!authStore.token) return
+  try {
+    await authStore.refreshCurrentUser()
+  } catch {
+    authStore.clearSession()
+    await router.replace('/login')
+  }
+}
+
 function enterShop(shop: ShopSummary) {
   merchantStore.setCurrentShop(shop.id)
   router.push({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: shop.id } })
 }
+
+onMounted(() => {
+  void refreshShops()
+})
 </script>
 
 <template>
@@ -30,7 +45,14 @@ function enterShop(shop: ShopSummary) {
         </div>
       </div>
 
-      <div class="shop-grid">
+      <el-empty
+        v-if="manageableShops.length === 0"
+        description="当前账号尚未分配店铺，请联系平台管理员开通店铺"
+      >
+        <el-button type="primary" plain @click="router.replace('/login')">返回登录</el-button>
+      </el-empty>
+
+      <div v-else class="shop-grid">
         <el-card v-for="shop in manageableShops" :key="shop.id" class="shop-card" shadow="never">
           <div class="shop-card-header">
             <div>

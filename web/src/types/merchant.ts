@@ -79,10 +79,10 @@ export interface ProductAttributeInput {
 
 export interface SkuCreateInput {
   skuName: string
-  imageUrl: string
+  imageUrl?: string
   salePrice: Money
   marketPrice: Money
-  barcode: string
+  barcode?: string
   stock: number
 }
 
@@ -96,7 +96,7 @@ export interface CreateProductRequest {
   categoryId: Id
   brandId?: Id
   subtitle?: string
-  coverImageUrl: string
+  coverImageUrl?: string | null
   galleryImageUrls: string[]
   detailHtml: string
   packageList?: string
@@ -110,7 +110,7 @@ export interface UpdateProductContentRequest {
   categoryId: Id
   brandId?: Id
   subtitle?: string
-  coverImageUrl: string
+  coverImageUrl?: string | null
   galleryImageUrls: string[]
   detailHtml: string
   packageList?: string
@@ -121,10 +121,10 @@ export interface UpdateProductContentRequest {
 
 export interface CreateSkuRequest {
   skuName: string
-  imageUrl: string
+  imageUrl?: string
   salePrice: Money
-  marketPrice: Money
-  barcode: string
+  marketPrice?: Money
+  barcode?: string
   stock: number
 }
 

@@ -4,7 +4,7 @@
 
 后端服务地址：`https://shiguangserver.zeabur.app`
 
-前端请求基地址：`https://shiguangserver.zeabur.app/api`
+前端请求基地址：默认 `/api`；本地开发由 Vite 代理到 `https://shiguangserver.zeabur.app`。
 
 ## 统一请求契约
 
@@ -24,14 +24,26 @@
 
 | 前端函数/页面 | 方法 | 后端接口 | 对接状态 | 说明 |
 | --- | --- | --- | --- | --- |
-| `loginAdmin` | POST | `/api/auth/login` | 已对接 | 管理端登录 |
+| `loginAdmin` | POST | `/api/auth/login` | 已对接 | 管理端登录，前端会拒绝非平台管理员账号 |
 | `loginAdmin` | GET | `/api/auth/me` | 已对接 | 登录后拉取平台角色和权限 |
-| `useAuthStore.login` | POST | `/api/auth/login` | 已对接 | 商家/普通用户登录 |
-| `useAuthStore.login` | GET | `/api/auth/me` | 已对接 | 登录后拉取店铺上下文 |
-| `useAuthStore.register` | POST | `/api/auth/register` | 已对接 | 公开注册用户账号，不直接创建店铺 |
+| `useAuthStore.login` | POST | `/api/auth/login` | 已对接 | 商家登录 |
+| `useAuthStore.login` | GET | `/api/auth/me` | 已对接 | 登录后拉取店铺上下文；无店铺则提示需平台开通 |
+| `useAuthStore.register` | POST | `/api/auth/register` | 已对接 | 商家账号预注册；后端只创建用户，不创建店铺 |
 | `logout` | POST | `/api/auth/logout` | 已对接 | 登出并清理本地登录态 |
 | `getCurrentUser` | GET | `/api/auth/me` | 已对接 | 当前用户信息 |
 | `updateCurrentUser` | PATCH | `/api/users/me` | 已对接 | 更新昵称、手机号、邮箱、头像 |
+
+### 商家/管理端登录注册流程
+
+当前前端只开放商家端与管理端，不开放普通买家端页面。
+
+1. 商家在 `/register` 完成账号预注册，前端调用 `POST /api/auth/register`。
+2. 该接口按后端文档只创建用户、钱包并分配 `CUSTOMER`，不会创建店铺，也不会自动拥有商家权限。
+3. 平台管理员登录 `/login` 的“管理员”身份后，进入 `/admin/shops` 店铺管理。
+4. 管理员创建店铺时填写商家预注册的 `adminUsername`，前端调用 `POST /api/platform/shops`。
+5. 后端创建店铺并把该账号绑定为新店首位 `SHOP_ADMIN`。
+6. 商家再回到 `/login` 选择“商家”身份登录；`GET /api/auth/me` 返回 `shops[]` 后进入对应店铺工作台。
+7. 如果商家账号没有店铺，前端不会进入商家工作台，而是提示“当前账号尚未分配店铺，请联系平台管理员开通店铺”。
 
 ### 认证适配说明
 
@@ -204,14 +216,14 @@
 
 | 页面/模块 | 当前状态 |
 | --- | --- |
-| `/login` | 管理员和商家登录均调用真实后端 |
-| `/register` | 调用真实注册接口，仅注册用户账号 |
+| `/login` | 仅保留商家、管理员两类身份；均调用真实后端 |
+| `/register` | 商家账号预注册；注册后需由管理员在 `/admin/shops` 创建店铺并绑定 |
 | 商家商品页 | 调用真实后端 |
 | 商家库存页 | 库存列表、详情、入库调用真实后端 |
 | 商家订单页 | 调用真实后端 |
 | 管理端分类、品牌、商品审核页 | 调用真实后端 |
 | 公开商城、购物车、交易、支付、钱包、地址 | 已补 API 层，当前工程暂未提供对应业务页面 |
-| 管理端店铺 | 已补 API 层，当前工程暂未提供对应业务页面 |
+| 管理端店铺 | 已接入真实页面 `/admin/shops`，用于创建店铺、绑定商家账号、维护店铺状态 |
 
 ## 本次验证
 

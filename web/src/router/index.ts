@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useMerchantStore } from '@/stores/merchant'
 
 const merchantPlaceholder = () => import('@/views/merchant/MerchantPlaceholderView.vue')
+const merchantEntry = () => import('@/views/merchant/MerchantEntryView.vue')
 const merchantProductList = () => import('@/views/merchant/product/MerchantProductListView.vue')
 const merchantProductForm = () => import('@/views/merchant/product/MerchantProductFormView.vue')
 const merchantProductDetail = () => import('@/views/merchant/product/MerchantProductDetailView.vue')
@@ -43,7 +44,7 @@ const routes: RouteRecordRaw[] = [
     name: ROUTE_NAME.Register,
     component: () => import('@/views/RegisterView.vue'),
     meta: {
-      title: '商家注册',
+      title: '商家账号预注册',
       layout: 'blank'
     }
   },
@@ -58,11 +59,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/merchant',
     name: ROUTE_NAME.MerchantEntry,
-    redirect: () => {
-      const authStore = useAuthStore()
-      const firstShop = authStore.manageableShops[0]
-      return firstShop ? { name: ROUTE_NAME.MerchantDashboard, params: { shopId: firstShop.id } } : { name: ROUTE_NAME.MerchantShopSelect }
-    },
+    component: merchantEntry,
     meta: {
       title: '商家端入口',
       layout: 'blank',
@@ -264,6 +261,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'rbac/accounts', name: ROUTE_NAME.AdminAccounts, component: () => import('@/views/admin/AccountManageView.vue'), meta: { ...adminRouteMeta, title: '账号管理', permissions: ['admin:rbac:account'] } },
       { path: 'catalog/categories', name: ROUTE_NAME.AdminCategories, component: () => import('@/views/admin/CategoryManageView.vue'), meta: { ...adminRouteMeta, title: '分类管理', permissions: ['admin:catalog:category'] } },
       { path: 'catalog/brands', name: ROUTE_NAME.AdminBrands, component: () => import('@/views/admin/BrandManageView.vue'), meta: { ...adminRouteMeta, title: '品牌管理', permissions: ['admin:catalog:brand'] } },
+      { path: 'shops', name: ROUTE_NAME.AdminShops, component: () => import('@/views/admin/ShopManageView.vue'), meta: { ...adminRouteMeta, title: '店铺管理', permissions: ['admin:shop:manage'] } },
+      { path: 'shops/members', name: ROUTE_NAME.AdminShopMembers, component: () => import('@/views/admin/ShopMemberManageView.vue'), meta: { ...adminRouteMeta, title: '店铺成员', permissions: ['admin:shop:manage'] } },
       { path: 'products', name: ROUTE_NAME.AdminProducts, component: () => import('@/views/admin/ProductManageView.vue'), meta: { ...adminRouteMeta, title: '商品管理', permissions: ['admin:product:view'] } },
       { path: 'inventory', name: ROUTE_NAME.AdminInventory, component: () => import('@/views/admin/InventoryOverviewView.vue'), meta: { ...adminRouteMeta, title: '库存总览', permissions: ['admin:inventory:view'] } },
       { path: 'orders', name: ROUTE_NAME.AdminOrders, component: () => import('@/views/admin/OrderManageView.vue'), meta: { ...adminRouteMeta, title: '订单管理', permissions: ['admin:order:view'] } },

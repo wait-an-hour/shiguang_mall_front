@@ -13,14 +13,22 @@ interface PermissionTreeCheckInfo {
 
 const loading = ref(false)
 const dialogVisible = ref(false)
-const records = ref<RoleRecord[]>([])
+const records = ref<RoleRecord[]>([]);
 const form = reactive<RoleRecord>({ id: '', name: '', code: 'OPERATION_ADMIN', description: '', permissions: [], createdAt: '' })
 
-async function loadData() { loading.value = true; records.value = await listRoles(); loading.value = false }
+async function loadData() {
+  loading.value = true
+  try {
+    const data = await listRoles()
+    records.value = data.items as unknown as RoleRecord[]
+  } finally {
+    loading.value = false
+  }
+}
 function openEdit(row?: RoleRecord) { Object.assign(form, row ?? { id: '', name: '', code: 'OPERATION_ADMIN', description: '', permissions: [], createdAt: '' }); dialogVisible.value = true }
-async function submit() { await saveRole({ ...form, permissions: [...form.permissions] }); ElMessage.success('角色已保存'); dialogVisible.value = false; loadData() }
-async function remove(id: string) { await deleteRole(id); ElMessage.success('角色已删除'); loadData() }
-onMounted(loadData)
+async function submit() { await saveRole({ ...form, permissions: [...form.permissions] }); ElMessage.success('角色已保存'); dialogVisible.value = false; void loadData() }
+async function remove(id: string) { await deleteRole(id); ElMessage.success('角色已删除'); void loadData() }
+onMounted(() => { void loadData() })
 </script>
 
 <template>
