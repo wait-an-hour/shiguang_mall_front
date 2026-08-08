@@ -64,6 +64,7 @@ export interface PermissionView {
 
 export interface RoleDetailView extends RoleRecord {
   status: 'ACTIVE' | 'DISABLED'
+  permissionIds: Id[]
   updatedAt?: string
 }
 
@@ -91,6 +92,7 @@ function normalizeRoleView(role: any): RoleRecord {
     code: (role.roleCode ?? role.code) as RoleRecord['code'],
     description: role.description,
     permissions: role.permissions ?? [],
+    permissionIds: role.permissionIds ?? [],
     createdAt: role.createdAt
   }
 }
@@ -126,6 +128,7 @@ export async function listRoles(query: RoleQuery = {}) {
 export async function saveRole(record: RoleRecord) {
   if (record.id) {
     await request.put(`/platform/rbac/roles/${record.id}`, { roleName: record.name, description: record.description })
+    await request.put(`/platform/rbac/roles/${record.id}/permissions`, { permissionIds: record.permissionIds ?? [] })
     return true
   }
   await request.post('/platform/rbac/roles', {
@@ -133,7 +136,7 @@ export async function saveRole(record: RoleRecord) {
     roleName: record.name,
     scopeType: 'PLATFORM',
     description: record.description,
-    permissionIds: record.permissions
+    permissionIds: record.permissionIds ?? []
   })
   return true
 }

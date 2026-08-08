@@ -48,7 +48,7 @@ interface BackendInventoryItemView {
 interface BackendInventoryOperationView {
   transactionNo: string
   skuId: Id
-  transactionType: InventoryTransactionType
+  transactionType: InventoryTransactionType | 'ADJUST'
   availableChange: number
   lockedChange: number
   availableAfter: number
@@ -57,6 +57,26 @@ interface BackendInventoryOperationView {
   businessNo: string
   remark?: string
   createdAt: string
+}
+
+interface BackendInventoryTransactionView {
+  id: Id
+  transactionNo: string
+  skuId: Id
+  transactionType: InventoryTransactionType | 'ADJUST'
+  availableChange: number
+  lockedChange: number
+  availableBefore?: number
+  lockedBefore?: number
+  availableAfter: number
+  lockedAfter: number
+  businessType: string
+  businessNo: string
+  remark?: string
+  createdAt: string
+  skuNo?: string
+  skuName?: string
+  productName?: string
 }
 
 function getStockState(availableStock: number): StockState {
@@ -89,8 +109,26 @@ function toOperation(data: BackendInventoryOperationView): InventoryOperationVie
     availableStock: data.availableAfter,
     lockedStock: data.lockedAfter,
     version: 0,
-    operationType: data.transactionType,
+    operationType: data.transactionType === 'ADJUST' ? 'ADJUSTMENT' : data.transactionType,
     businessNo: data.businessNo || data.transactionNo,
+    createdAt: data.createdAt
+  }
+}
+
+function toTransaction(data: BackendInventoryTransactionView): InventoryTransactionView {
+  return {
+    id: data.id,
+    skuId: data.skuId,
+    skuNo: data.skuNo || '',
+    skuName: data.skuName || '',
+    productName: data.productName || '',
+    transactionType: data.transactionType === 'ADJUST' ? 'ADJUSTMENT' : data.transactionType,
+    businessType: data.businessType,
+    businessNo: data.businessNo || data.transactionNo,
+    quantity: data.availableChange,
+    beforeAvailableStock: data.availableBefore ?? data.availableAfter - data.availableChange,
+    afterAvailableStock: data.availableAfter,
+    remark: data.remark,
     createdAt: data.createdAt
   }
 }
@@ -120,10 +158,19 @@ export async function createInventoryInbound(shopId: Id, data: InventoryInboundR
   return toOperation(operation)
 }
 
-export async function createInventoryAdjustment(_shopId: Id, _data: InventoryAdjustmentRequest): Promise<InventoryOperationView> {
-  throw new Error('当前后端暂未实现库存调整接口')
+export async function createInventoryAdjustment(shopId: Id, data: InventoryAdjustmentRequest): Promise<InventoryOperationView> {
+  const operation = await request.post<BackendInventoryOperationView>(`/shops/${shopId}/inventory/${data.skuId}/adjustments`, {
+    availableChange: data.delta,
+    lockedChange: 0,
+    version: data.version,
+    reason: data.remark
+  }, { headers: { 'Idempotency-Key': data.businessNo || idempotencyKey() } }) as unknown as BackendInventoryOperationView
+  return toOperation(operation)
 }
 
-export async function getInventoryTransactions(_shopId: Id, _query: InventoryTransactionQuery = {}) {
-  return { items: [], page: 1, pageSize: 10, total: 0, totalPages: 0 } as PageView<InventoryTransactionView>
+export async function getInventoryTransactions(shopId: Id, query: InventoryTransactionQuery = {}): Promise<PageView<InventoryTransactionView>> {
+  const data = await request.get<PageView<BackendInventoryTransactionView>>(`/shops/${shopId}/inventory/transactions`, {
+    params: query
+  }) as unknown as PageView<BackendInventoryTransactionView>
+  return { ...data, items: data.items.map(toTransaction) }
 }

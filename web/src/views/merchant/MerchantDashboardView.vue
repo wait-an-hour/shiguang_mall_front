@@ -70,7 +70,9 @@ async function loadDashboard() {
       getMerchantOrders(shopId, { orderStatus: 'PENDING_SHIPMENT', page: 1, pageSize: 1 }),
       getMerchantProducts(shopId, { status: 'ON_SHELF', page: 1, pageSize: 1 }),
       getMerchantInventory(shopId, { stockState: 'LOW', page: 1, pageSize: 1 }),
-      getMerchantAfterSales(shopId, { status: 'PENDING', page: 1, pageSize: 1 }).catch(() => ({ items: [], page: 1, pageSize: 1, total: 0, totalPages: 0 })),
+      getMerchantAfterSales(shopId, { status: 'PENDING', page: 1, pageSize: 1 }).catch((error) => {
+        throw new Error(`售后模块加载失败：${error instanceof Error ? error.message : '请求失败'}`)
+      }),
       getMerchantProducts(shopId, { status: 'DRAFT', page: 1, pageSize: 1 }),
       getMerchantOrders(shopId, { page: 1, pageSize: 3 }),
       getMerchantInventory(shopId, { stockState: 'LOW', page: 1, pageSize: 3 })

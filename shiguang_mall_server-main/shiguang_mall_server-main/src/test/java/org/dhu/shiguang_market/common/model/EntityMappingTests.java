@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import org.dhu.shiguang_market.aftersale.model.AfterSaleRequest;
 import org.dhu.shiguang_market.identity.model.SysUser;
-import org.dhu.shiguang_market.identity.model.UserAddress;
+import org.dhu.shiguang_market.address.model.UserAddress;
 import org.dhu.shiguang_market.inventory.model.InventoryStock;
 import org.dhu.shiguang_market.order.model.OrderInfo;
 import org.dhu.shiguang_market.order.model.TradeOrder;
@@ -65,6 +65,8 @@ class EntityMappingTests {
         assertAlways(ProductSpu.class, "brandId", "subtitle", "coverUrl", "galleryJson",
                 "detailHtml", "packingList", "serviceNote");
         assertAlways(ProductSku.class, "marketPrice", "barcode", "imageUrl");
+        // 退款重试进入 PROCESSING 时必须能显式清空上一轮失败原因。
+        assertAlways(AfterSaleRequest.class, "refundFailureReason");
     }
 
     private static void assertAlways(Class<?> entity, String... fields) throws Exception {

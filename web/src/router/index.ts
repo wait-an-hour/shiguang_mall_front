@@ -6,7 +6,6 @@ import { useAdminAuthStore } from '@/stores/adminAuth'
 import { useAuthStore } from '@/stores/auth'
 import { useMerchantStore } from '@/stores/merchant'
 
-const merchantPlaceholder = () => import('@/views/merchant/MerchantPlaceholderView.vue')
 const merchantEntry = () => import('@/views/merchant/MerchantEntryView.vue')
 const merchantProductList = () => import('@/views/merchant/product/MerchantProductListView.vue')
 const merchantProductForm = () => import('@/views/merchant/product/MerchantProductFormView.vue')
@@ -18,6 +17,7 @@ const merchantOrderList = () => import('@/views/merchant/order/MerchantOrderList
 const merchantOrderDetail = () => import('@/views/merchant/order/MerchantOrderDetailView.vue')
 const merchantAfterSaleList = () => import('@/views/merchant/afterSale/MerchantAfterSaleListView.vue')
 const merchantAfterSaleDetail = () => import('@/views/merchant/afterSale/MerchantAfterSaleDetailView.vue')
+const merchantMemberList = () => import('@/views/merchant/MerchantMemberListView.vue')
 
 const adminRouteMeta = {
   layout: 'admin',
@@ -236,7 +236,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'members',
         name: ROUTE_NAME.MerchantMemberList,
-        component: merchantPlaceholder,
+        component: merchantMemberList,
         meta: {
           title: '成员管理',
           layout: 'merchant',

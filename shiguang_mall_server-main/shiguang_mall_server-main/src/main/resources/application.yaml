@@ -3,7 +3,7 @@ server:
 
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:.env.properties
   application:
     name: shiguang_market
   jackson:
@@ -51,6 +51,7 @@ sa-token:
   is-log: false
 
 market:
+  internal-task-api-enabled: ${INTERNAL_TASK_API_ENABLED:false}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
   trade:

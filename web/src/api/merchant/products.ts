@@ -274,7 +274,3 @@ export async function takeMerchantProductOffShelf(shopId: Id, spuId: Id) {
   const product = await request.post<BackendShopProductDetailView>(`/shops/${shopId}/products/${spuId}/take-off-shelf`) as unknown as BackendShopProductDetailView
   return toDetail(product)
 }
-
-export function getMockProductSnapshots() {
-  return [] as ShopProductDetailView[]
-}

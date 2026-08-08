@@ -65,6 +65,7 @@ export interface RoleRecord {
   code: AdminRole
   description: string
   permissions: PermissionCode[]
+  permissionIds?: Id[]
   createdAt: Timestamp
 }
 

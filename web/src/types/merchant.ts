@@ -50,6 +50,28 @@ export interface LowStockSku {
 export type ProductStatus = 'DRAFT' | 'PENDING_REVIEW' | 'REJECTED' | 'OFF_SHELF' | 'ON_SHELF' | 'BANNED'
 export type EnabledStatus = 'ENABLED' | 'DISABLED'
 export type StockState = 'NORMAL' | 'LOW' | 'OUT'
+export type MerchantMemberStatus = 'ACTIVE' | 'DISABLED'
+export type MerchantMemberRole = 'SHOP_ADMIN' | 'SHOP_MEMBER'
+
+export interface MerchantMemberView {
+  id: Id
+  username: string
+  nickname: string
+  roleCode: MerchantMemberRole
+  roleName: string
+  status: MerchantMemberStatus
+  phone: string | null
+  createdAt: Timestamp
+}
+
+export interface MerchantMemberQuery {
+  keyword?: string
+  roleId?: Id | ''
+  status?: MerchantMemberStatus | ''
+  page?: number
+  pageSize?: number
+}
+
 export type InventoryTransactionType = 'INBOUND' | 'ADJUSTMENT' | 'LOCK' | 'UNLOCK' | 'DEDUCT' | 'RELEASE'
 
 export interface CategoryBrief {
