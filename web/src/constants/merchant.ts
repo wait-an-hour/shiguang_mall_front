@@ -18,7 +18,9 @@ export const SHOP_PERMISSION = {
   OrderRead: 'shop:order:read',
   OrderShip: 'shop:order:ship',
   AfterSaleManage: 'shop:after-sale:manage',
-  MemberManage: 'shop:member:manage'
+  MemberManage: 'shop:member:manage',
+  WalletRead: 'shop:wallet:read',
+  WalletWithdraw: 'shop:wallet:withdraw'
 } as const
 
 export const SHOP_STATUS_LABELS: Record<ShopStatus, string> = {

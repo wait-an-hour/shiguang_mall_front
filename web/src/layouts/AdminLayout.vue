@@ -20,7 +20,8 @@ const menus = [
   { title: '商品管理', path: '/admin/products', permission: 'admin:product:view' },
   { title: '库存总览', path: '/admin/inventory', permission: 'admin:inventory:view' },
   { title: '订单管理', path: '/admin/orders', permission: 'admin:order:view' },
-  { title: '售后审核', path: '/admin/after-sales', permission: 'admin:after-sale:audit' }
+  { title: '售后审核', path: '/admin/after-sales', permission: 'admin:after-sale:audit' },
+  { title: '售后申诉', path: '/admin/after-sale-appeals', permission: 'admin:after-sale:audit' }
 ] as const
 
 const visibleMenus = computed(() => menus.filter((item) => auth.hasPermissions([item.permission])))

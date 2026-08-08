@@ -36,6 +36,10 @@ export const useMerchantStore = defineStore('merchant', () => {
     return permissions.every((permission) => hasShopPermission(permission))
   }
 
+  function hasAnyShopPermission(permissions: string[]) {
+    return permissions.some((permission) => hasShopPermission(permission))
+  }
+
   return {
     currentShopId,
     currentShop,
@@ -44,6 +48,7 @@ export const useMerchantStore = defineStore('merchant', () => {
     setCurrentShop,
     ensureShop,
     hasShopPermission,
-    hasEveryShopPermission
+    hasEveryShopPermission,
+    hasAnyShopPermission
   }
 })

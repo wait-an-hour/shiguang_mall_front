@@ -16,6 +16,7 @@ export const ROUTE_NAME = {
   MerchantAfterSaleList: 'MerchantAfterSaleList',
   MerchantAfterSaleDetail: 'MerchantAfterSaleDetail',
   MerchantMemberList: 'MerchantMemberList',
+  MerchantWallet: 'MerchantWallet',
   AdminDashboard: 'AdminDashboard',
   AdminRoles: 'AdminRoles',
   AdminAccounts: 'AdminAccounts',
@@ -27,6 +28,7 @@ export const ROUTE_NAME = {
   AdminInventory: 'AdminInventory',
   AdminOrders: 'AdminOrders',
   AdminAfterSales: 'AdminAfterSales',
+  AdminAfterSaleAppeals: 'AdminAfterSaleAppeals',
   Forbidden: 'Forbidden',
   NotFound: 'NotFound'
 } as const

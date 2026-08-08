@@ -7,6 +7,8 @@ import { createMerchantProduct, createMerchantSku, getMerchantProductDetail, upd
 import { ApiRequestError } from '../../../utils/request'
 import { ROUTE_NAME } from '../../../constants/routes'
 import { SKU_STATUS_LABELS } from '../../../constants/merchant'
+import { uploadImage, type AssetPurpose } from '../../../api/assets'
+import type { UploadFile } from 'element-plus'
 import type { CreateProductRequest, EnabledStatus, ShopProductDetailView } from '../../../types/merchant'
 
 const route = useRoute()
@@ -52,6 +54,28 @@ const form = reactive<CreateProductRequest>({
   skus: []
 })
 const galleryText = ref('')
+const uploadingPurpose = ref<AssetPurpose | null>(null)
+const uploadError = ref('')
+
+async function handleImageUpload(file: UploadFile, purpose: AssetPurpose) {
+  if (!file.raw) return
+  uploadingPurpose.value = purpose
+  uploadError.value = ''
+  try {
+    const uploaded = await uploadImage(file.raw, purpose, shopId.value)
+    if (purpose === 'PRODUCT_COVER') form.coverImageUrl = uploaded.url
+    else if (purpose === 'PRODUCT_GALLERY') {
+      form.galleryImageUrls.push(uploaded.url)
+      galleryText.value = form.galleryImageUrls.join('\\n')
+    } else form.detailHtml = `${form.detailHtml}${form.detailHtml ? '\\n' : ''}${uploaded.url}`
+    ElMessage.success('图片上传成功')
+  } catch (error) {
+    uploadError.value = error instanceof Error ? error.message : '图片上传失败'
+    ElMessage.error(uploadError.value)
+  } finally {
+    uploadingPurpose.value = null
+  }
+}
 
 const idRule = { pattern: /^[1-9]\d*$/, message: '请输入正整数 ID，例如 401', trigger: 'blur' as const }
 
@@ -223,9 +247,10 @@ onMounted(() => {
         </el-form-item>
         <el-form-item label="品牌 ID" prop="brandId"><el-input v-model="form.brandId" placeholder="可选，请输入正整数 ID" /></el-form-item>
         <el-form-item label="副标题"><el-input v-model="form.subtitle" /></el-form-item>
-        <el-form-item label="封面 URL" prop="coverImageUrl"><el-input v-model="form.coverImageUrl" /></el-form-item>
-        <el-form-item label="图集 URL"><el-input v-model="galleryText" type="textarea" :rows="3" placeholder="每行一个图片 URL" /></el-form-item>
-        <el-form-item label="详情说明" prop="detailHtml"><el-input v-model="form.detailHtml" type="textarea" :rows="4" /></el-form-item>
+        <el-form-item label="封面图片" prop="coverImageUrl"><el-input v-model="form.coverImageUrl" placeholder="上传后自动填充图片地址" /><el-upload :show-file-list="false" :auto-upload="false" accept="image/*" :disabled="uploadingPurpose !== null" @change="(file: UploadFile) => handleImageUpload(file, 'PRODUCT_COVER')"><el-button :loading="uploadingPurpose === 'PRODUCT_COVER'">上传封面</el-button></el-upload></el-form-item>
+        <el-form-item label="商品图库"><el-input v-model="galleryText" type="textarea" :rows="3" placeholder="每行一个图片 URL" /><el-upload multiple :show-file-list="false" :auto-upload="false" accept="image/*" :disabled="uploadingPurpose !== null" @change="(file: UploadFile) => handleImageUpload(file, 'PRODUCT_GALLERY')"><el-button :loading="uploadingPurpose === 'PRODUCT_GALLERY'">上传图库图片</el-button></el-upload></el-form-item>
+        <el-form-item label="详情图片" prop="detailHtml"><el-input v-model="form.detailHtml" type="textarea" :rows="4" placeholder="可填写详情说明，上传图片后会追加图片地址" /><el-upload :show-file-list="false" :auto-upload="false" accept="image/*" :disabled="uploadingPurpose !== null" @change="(file: UploadFile) => handleImageUpload(file, 'RICH_TEXT_IMAGE')"><el-button :loading="uploadingPurpose === 'RICH_TEXT_IMAGE'">上传详情图</el-button></el-upload></el-form-item>
+        <div v-if="uploadError" class="upload-error">{{ uploadError }}</div>
         <el-form-item label="包装清单"><el-input v-model="form.packageList" /></el-form-item>
         <el-form-item label="服务说明"><el-input v-model="form.serviceNotes" /></el-form-item>
 

@@ -98,7 +98,16 @@ const routes: RouteRecordRaw[] = [
           title: '工作台',
           layout: 'merchant',
           requiresAuth: true,
-          shopScoped: true
+          shopScoped: true,
+          permissions: [
+            SHOP_PERMISSION.ProductManage,
+            SHOP_PERMISSION.InventoryManage,
+            SHOP_PERMISSION.OrderRead,
+            SHOP_PERMISSION.AfterSaleManage,
+            SHOP_PERMISSION.WalletRead,
+            SHOP_PERMISSION.MemberManage
+          ],
+          permissionMode: 'any'
         }
       },
       {
@@ -234,6 +243,15 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
+        path: 'wallet',
+        name: ROUTE_NAME.MerchantWallet,
+        component: () => import('@/views/merchant/MerchantWalletView.vue'),
+        meta: {
+          title: '商家钱包', layout: 'merchant', requiresAuth: true, shopScoped: true,
+          permissions: [SHOP_PERMISSION.WalletRead]
+        }
+      },
+      {
         path: 'members',
         name: ROUTE_NAME.MerchantMemberList,
         component: merchantMemberList,
@@ -266,7 +284,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'products', name: ROUTE_NAME.AdminProducts, component: () => import('@/views/admin/ProductManageView.vue'), meta: { ...adminRouteMeta, title: '商品管理', permissions: ['admin:product:view'] } },
       { path: 'inventory', name: ROUTE_NAME.AdminInventory, component: () => import('@/views/admin/InventoryOverviewView.vue'), meta: { ...adminRouteMeta, title: '库存总览', permissions: ['admin:inventory:view'] } },
       { path: 'orders', name: ROUTE_NAME.AdminOrders, component: () => import('@/views/admin/OrderManageView.vue'), meta: { ...adminRouteMeta, title: '订单管理', permissions: ['admin:order:view'] } },
-      { path: 'after-sales', name: ROUTE_NAME.AdminAfterSales, component: () => import('@/views/admin/AfterSaleReviewView.vue'), meta: { ...adminRouteMeta, title: '售后审核', permissions: ['admin:after-sale:audit'] } }
+      { path: 'after-sales', name: ROUTE_NAME.AdminAfterSales, component: () => import('@/views/admin/AfterSaleReviewView.vue'), meta: { ...adminRouteMeta, title: '售后审核', permissions: ['admin:after-sale:audit'] } },
+      { path: 'after-sale-appeals', name: ROUTE_NAME.AdminAfterSaleAppeals, component: () => import('@/views/admin/AfterSaleAppealManageView.vue'), meta: { ...adminRouteMeta, title: '售后申诉', permissions: ['admin:after-sale:audit'] } }
     ]
   },
   {
@@ -331,8 +350,13 @@ router.beforeEach((to) => {
     }
 
     const permissions = to.meta.permissions ?? []
-    if (permissions.length > 0 && !merchantStore.hasEveryShopPermission(permissions)) {
-      return { name: ROUTE_NAME.Forbidden }
+    if (permissions.length > 0) {
+      const hasPermission = to.meta.permissionMode === 'any'
+        ? merchantStore.hasAnyShopPermission(permissions)
+        : merchantStore.hasEveryShopPermission(permissions)
+      if (!hasPermission) {
+        return { name: ROUTE_NAME.Forbidden }
+      }
     }
   }
 

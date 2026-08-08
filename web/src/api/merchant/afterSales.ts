@@ -36,7 +36,7 @@ export async function approveMerchantAfterSale(shopId: Id, afterSaleId: Id, requ
 }
 
 export async function rejectMerchantAfterSale(shopId: Id, afterSaleId: Id, requestBody: RejectAfterSaleRequest) {
-  return await request.post<ShopAfterSaleDetailView>(`/shops/${shopId}/after-sales/${afterSaleId}/reject`, requestBody, { headers: { 'Idempotency-Key': crypto.randomUUID() } }) as unknown as Promise<ShopAfterSaleDetailView>
+  return await request.post<ShopAfterSaleDetailView>(`/shops/${shopId}/after-sales/${afterSaleId}/reject`, requestBody) as unknown as Promise<ShopAfterSaleDetailView>
 }
 
 export async function confirmMerchantReturnReceived(shopId: Id, afterSaleId: Id, requestBody: ConfirmReturnReceivedRequest) {

@@ -35,26 +35,13 @@ interface ProductReviewSummaryView {
   submittedAt: string
 }
 
-interface InventoryItemView {
-  skuId: string
-  skuNo: string
-  productName: string
-  shopName: string
-  availableStock: number
-  lockedStock: number
-  warningStock: number
-  updatedAt: string
-}
-
 async function count<T>(url: string, params: Record<string, unknown>) {
   const data = await request.get<PageView<T>>(url, { params: { page: 1, pageSize: 1, ...params } }) as unknown as PageView<T>
   return data.total
 }
 
 async function loadLowStockCount() {
-  const shops = await request.get<PageView<{ shop: { id: string } }>>('/platform/shops', { params: { page: 1, pageSize: 100 } }) as unknown as PageView<{ shop: { id: string } }>
-  const counts = await Promise.allSettled(shops.items.map((item) => request.get<PageView<InventoryItemView>>(`/shops/${item.shop.id}/inventory`, { params: { page: 1, pageSize: 1, stockState: 'LOW_STOCK' } }) as unknown as Promise<PageView<InventoryItemView>>))
-  return counts.reduce((sum, result) => sum + (result.status === 'fulfilled' ? result.value.total : 0), 0)
+  return 0
 }
 
 export async function getAdminDashboard() {

@@ -9,7 +9,8 @@ import {
   List,
   Operation,
   Switch,
-  User
+  User,
+  Wallet
 } from '@element-plus/icons-vue'
 import shiguangLogo from '../assets/shiguang-logo.png'
 import { SHOP_PERMISSION, SHOP_STATUS_LABELS, SHOP_STATUS_TAG_TYPES } from '../constants/merchant'
@@ -31,7 +32,14 @@ const menuItems = computed(() => [
     label: '工作台',
     routeName: ROUTE_NAME.MerchantDashboard,
     icon: HomeFilled,
-    visible: true
+    visible: merchantStore.hasAnyShopPermission([
+      SHOP_PERMISSION.ProductManage,
+      SHOP_PERMISSION.InventoryManage,
+      SHOP_PERMISSION.OrderRead,
+      SHOP_PERMISSION.AfterSaleManage,
+      SHOP_PERMISSION.WalletRead,
+      SHOP_PERMISSION.MemberManage
+    ])
   },
   {
     label: '商品管理',
@@ -56,6 +64,12 @@ const menuItems = computed(() => [
     routeName: ROUTE_NAME.MerchantAfterSaleList,
     icon: Operation,
     visible: merchantStore.hasShopPermission(SHOP_PERMISSION.AfterSaleManage)
+  },
+  {
+    label: '商家钱包',
+    routeName: ROUTE_NAME.MerchantWallet,
+    icon: Wallet,
+    visible: merchantStore.hasShopPermission(SHOP_PERMISSION.WalletRead)
   },
   {
     label: '成员管理',

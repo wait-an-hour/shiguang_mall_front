@@ -44,6 +44,21 @@ const dialogVisible = computed({
   get: () => Boolean(dialogType.value),
   set: (value: boolean) => { if (!value) dialogType.value = '' }
 })
+const availableActions = computed<AfterSaleAction[]>(() => {
+  if (!detail.value) return []
+  const actions = new Set<AfterSaleAction>(detail.value.availableActions ?? [])
+  if (detail.value.status === 'PENDING') {
+    actions.add('APPROVE')
+    actions.add('REJECT')
+  }
+  if (detail.value.status === 'WAITING_RETURN' && detail.value.returnShipment && !detail.value.returnShipment.receivedAt) {
+    actions.add('CONFIRM_RETURN_RECEIVED')
+  }
+  if (detail.value.refundStatus === 'FAILED' || detail.value.status === 'REFUNDING') {
+    actions.add('RETRY_REFUND')
+  }
+  return [...actions]
+})
 const timelineItems = computed(() => {
   if (!detail.value) return []
   const items = [{ title: '提交申请', time: detail.value.createdAt, remark: detail.value.reasonDescription || detail.value.reasonCode }]
@@ -118,10 +133,10 @@ onMounted(loadDetail)
         <p class="page-description">审核售后申请，跟进退货物流和退款结果。</p>
       </div>
       <div v-if="detail" class="page-actions">
-        <el-button v-if="detail.availableActions.includes('APPROVE')" type="primary" @click="openDialog('APPROVE')">批准</el-button>
-        <el-button v-if="detail.availableActions.includes('REJECT')" type="danger" plain @click="openDialog('REJECT')">拒绝</el-button>
-        <el-button v-if="detail.availableActions.includes('CONFIRM_RETURN_RECEIVED')" type="primary" @click="openDialog('CONFIRM_RETURN_RECEIVED')">确认退货</el-button>
-        <el-button v-if="detail.availableActions.includes('RETRY_REFUND')" type="warning" @click="openDialog('RETRY_REFUND')">退款重试</el-button>
+        <el-button v-if="availableActions.includes('APPROVE')" type="primary" @click="openDialog('APPROVE')">批准</el-button>
+        <el-button v-if="availableActions.includes('REJECT')" type="danger" plain @click="openDialog('REJECT')">拒绝</el-button>
+        <el-button v-if="availableActions.includes('CONFIRM_RETURN_RECEIVED')" type="primary" @click="openDialog('CONFIRM_RETURN_RECEIVED')">确认退货</el-button>
+        <el-button v-if="availableActions.includes('RETRY_REFUND')" type="warning" @click="openDialog('RETRY_REFUND')">退款重试</el-button>
       </div>
     </section>
 

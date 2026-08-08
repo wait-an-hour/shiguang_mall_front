@@ -46,15 +46,20 @@ interface BackendInventoryItemView {
 }
 
 interface BackendInventoryOperationView {
+  id?: Id
   transactionNo: string
   skuId: Id
   transactionType: InventoryTransactionType | 'ADJUST'
   availableChange: number
   lockedChange: number
+  availableBefore?: number
+  lockedBefore?: number
   availableAfter: number
   lockedAfter: number
+  version?: number
   businessType: string
   businessNo: string
+  operator?: unknown
   remark?: string
   createdAt: string
 }
@@ -108,7 +113,7 @@ function toOperation(data: BackendInventoryOperationView): InventoryOperationVie
     skuId: data.skuId,
     availableStock: data.availableAfter,
     lockedStock: data.lockedAfter,
-    version: 0,
+    version: data.version ?? 0,
     operationType: data.transactionType === 'ADJUST' ? 'ADJUSTMENT' : data.transactionType,
     businessNo: data.businessNo || data.transactionNo,
     createdAt: data.createdAt

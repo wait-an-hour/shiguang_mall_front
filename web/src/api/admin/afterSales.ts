@@ -51,6 +51,6 @@ export async function listAfterSales(query: PlatformAfterSaleQuery = {}) {
   }
 }
 
-export function auditAfterSale(id: Id, status: string, auditRemark: string) {
-  return request.post(`/platform/operations/after-sales/${id}/${status === 'APPROVED' ? 'approve' : 'reject'}`, { reviewComment: auditRemark })
+export function auditAfterSale() {
+  throw new Error('平台售后单不支持直接审核，请使用售后申诉裁决')
 }

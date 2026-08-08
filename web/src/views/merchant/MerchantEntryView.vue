@@ -18,9 +18,9 @@ async function initMerchantEntry() {
     }
   }
 
-  const firstShop = authStore.manageableShops[0]
-  if (firstShop) {
-    await router.replace({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: firstShop.id } })
+  const accessibleShop = authStore.manageableShops.find((shop) => shop.permissions.length > 0)
+  if (accessibleShop) {
+    await router.replace({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: accessibleShop.id } })
     return
   }
 

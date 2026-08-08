@@ -7,7 +7,7 @@ export type AccountStatus = 'ACTIVE' | 'DISABLED' | 'LOCKED'
 export type CommonStatus = 'ENABLED' | 'DISABLED'
 export type ProductStatus = 'DRAFT' | 'PENDING_REVIEW' | 'ON_SHELF' | 'OFF_SHELF' | 'REJECTED' | 'BANNED'
 export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'PENDING_SHIPMENT' | 'PENDING_RECEIPT' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED'
-export type AfterSaleStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+export type AfterSaleStatus = 'PENDING' | 'REJECTED' | 'WAITING_RETURN' | 'REFUNDING' | 'COMPLETED' | 'CANCELLED'
 export type PermissionCode =
   | 'admin:dashboard:view'
   | 'admin:rbac:role'
@@ -136,6 +136,44 @@ export interface PlatformAfterSale {
   status: AfterSaleStatus
   auditRemark?: string
   createdAt: Timestamp
+}
+
+export type AfterSaleAppealStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+export type AfterSaleAppealDecision = 'APPROVE' | 'REJECT'
+export type AfterSaleAppealTriggerType = 'MERCHANT_REJECTED' | 'MERCHANT_TIMEOUT'
+export type AfterSaleType = 'REFUND_ONLY' | 'RETURN_REFUND'
+
+export interface AppealShopSummary { id: Id; name: string; code: string; status: string; permissions: string[] }
+export interface AppealUserSummary { id: Id; username: string; nickname: string; avatarUrl: string | null; status: string }
+export interface AppealOperatorBrief { id: Id; username: string; displayName: string }
+export interface AppealSummary {
+  id: Id
+  appealNo: string
+  afterSaleId: Id
+  afterSaleNo: string
+  triggerType: AfterSaleAppealTriggerType
+  status: AfterSaleAppealStatus
+  shop: AppealShopSummary
+  buyer: AppealUserSummary
+  requestType: AfterSaleType
+  requestedAmount: Money
+  createdAt: Timestamp
+  decidedAt: Timestamp | null
+}
+export interface AppealDetail extends AppealSummary {
+  afterSale: { afterSaleId: Id; afterSaleNo: string; requestType: AfterSaleType; status: string; refundStatus: string; order: { id: Id; orderNo: string; orderStatus: string }; requestedAmount: Money; approvedAmount: Money | null }
+  reasonCode: string
+  reasonDescription: string
+  evidenceUrls: string[]
+  merchantReview: { reviewerId: Id; comment: string; reviewedAt: Timestamp } | null
+  decision: AfterSaleAppealDecision | null
+  approvedQuantity: number | null
+  approvedAmount: Money | null
+  decidedBy: AppealOperatorBrief | null
+  decisionComment: string | null
+  version: number
+  updatedAt: Timestamp
+  item: { id: Id; productName: string; skuName: string; spec: Record<string, string>; imageUrl: string | null; unitPrice: Money; purchasedQuantity: number } | null
 }
 
 export interface PageResult<T> {

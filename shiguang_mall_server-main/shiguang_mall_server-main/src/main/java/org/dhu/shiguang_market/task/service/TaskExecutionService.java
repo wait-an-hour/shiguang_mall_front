@@ -125,6 +125,7 @@ public class TaskExecutionService {
             for (OrderInfo order : orders) {
                 // 与人工确认收货使用相同的活跃售后口径。
                 if (!afterSaleMapper.existsActiveByOrderId(order.getId())
+                        && !afterSaleMapper.existsPendingAppealByOrderId(order.getId())
                         && completeShippedOrder(order.getId())) {
                     succeeded++;
                 }
@@ -225,6 +226,13 @@ public class TaskExecutionService {
             InventoryStock before = stockMapper.selectOne(new LambdaQueryWrapper<InventoryStock>()
                     .eq(InventoryStock::getSkuId, item.getSkuId()));
             if (before == null || stockMapper.release(item.getSkuId(), item.getQuantity()) != 1) {
+                int lockedReservationQuantity = itemMapper.sumLockedQuantityBySkuId(item.getSkuId());
+                log.error("释放超时交易库存失败: tradeNo={}, orderNo={}, orderItemId={}, skuId={}, "
+                                + "itemQuantity={}, stockLockedQuantity={}, stockAvailableQuantity={}, "
+                                + "lockedReservationQuantity={}",
+                        trade.getTradeNo(), order.getOrderNo(), item.getId(), item.getSkuId(),
+                        item.getQuantity(), before == null ? null : before.getLockedQuantity(),
+                        before == null ? null : before.getAvailableQuantity(), lockedReservationQuantity);
                 throw BusinessException.conflict("LOCKED_INVENTORY_INCONSISTENT", "锁定库存不一致");
             }
             item.setReservationStatus(ReservationStatus.RELEASED);
@@ -251,7 +259,8 @@ public class TaskExecutionService {
         if (order == null || order.getOrderStatus() != OrderStatus.PENDING_RECEIPT
                 || order.getShippedAt() == null
                 || !order.getShippedAt().isBefore(LocalDateTime.now().minusDays(7))
-                || afterSaleMapper.existsActiveByOrderId(orderId)) {
+                || afterSaleMapper.existsActiveByOrderId(orderId)
+                || afterSaleMapper.existsPendingAppealByOrderId(orderId)) {
             return false;
         }
         order.setOrderStatus(OrderStatus.COMPLETED);

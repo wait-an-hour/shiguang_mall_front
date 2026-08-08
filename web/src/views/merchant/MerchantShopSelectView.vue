@@ -24,6 +24,8 @@ async function refreshShops() {
   }
 }
 
+const hasShopAccess = (shop: ShopSummary) => shop.permissions.length > 0
+
 function enterShop(shop: ShopSummary) {
   merchantStore.setCurrentShop(shop.id)
   router.push({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: shop.id } })
@@ -66,9 +68,10 @@ onMounted(() => {
 
           <p class="shop-permission">已开通 {{ shop.permissions.length }} 项店铺权限</p>
 
-          <el-button class="enter-button" type="primary" plain @click="enterShop(shop)">
+          <el-button v-if="hasShopAccess(shop)" class="enter-button" type="primary" plain @click="enterShop(shop)">
             进入工作台
           </el-button>
+          <el-alert v-else title="暂无店铺功能权限" type="info" :closable="false" show-icon />
         </el-card>
       </div>
     </section>

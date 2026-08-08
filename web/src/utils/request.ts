@@ -29,17 +29,19 @@ const request = axios.create({
   headers: { Accept: 'application/json', 'Content-Type': 'application/json' }
 })
 
-function handleAuthExpired(code?: string, status?: number, requestUrl?: string) {
+function handleAuthExpired(code?: string, status?: number, requestUrl?: string, token?: string) {
   if (!((code && AUTH_ERROR_CODES.has(code)) || status === 401)) return
 
-  if (requestUrl?.startsWith('/platform/')) useAdminAuthStore().clearSession()
+  const adminAuth = useAdminAuthStore()
+  const isAdminRequest = requestUrl?.startsWith('/platform/') || token === adminAuth.token
+  if (isAdminRequest) adminAuth.clearSession()
   else useAuthStore().clearSession()
-  router.replace({ path: '/login' })
+  if (router.currentRoute.value.path !== '/login') void router.replace({ path: '/login' })
 }
 
-function unwrapResponse<T>(payload: ApiResponse<T>, requestUrl?: string) {
+function unwrapResponse<T>(payload: ApiResponse<T>, requestUrl?: string, token?: string) {
   if (payload.code !== 'OK') {
-    handleAuthExpired(payload.code, undefined, requestUrl)
+    handleAuthExpired(payload.code, undefined, requestUrl, token)
     throw new ApiRequestError(payload.message || '请求处理失败', {
       code: payload.code,
       requestId: payload.requestId
@@ -61,11 +63,11 @@ request.interceptors.request.use((config) => {
 })
 
 request.interceptors.response.use(
-  (response) => unwrapResponse(response.data, response.config.url),
+  (response) => unwrapResponse(response.data, response.config.url, response.config.headers?.satoken as string | undefined),
   (error: AxiosError<ApiErrorResponse>) => {
     const status = error.response?.status
     const data = error.response?.data
-    handleAuthExpired(data?.code, status, error.config?.url)
+    handleAuthExpired(data?.code, status, error.config?.url, error.config?.headers?.satoken as string | undefined)
 
     return Promise.reject(new ApiRequestError(data?.message || error.message || '网络请求失败', {
       code: data?.code || 'NETWORK_ERROR',

@@ -24,6 +24,8 @@ const filters = reactive({
   pageSize: Number(route.query.pageSize ?? 10)
 })
 const operationForm = reactive({ quantity: 1, delta: 0, businessNo: '', remark: '' })
+const operationSubmitting = ref(false)
+const adjustmentAfterStock = computed(() => (currentItem.value?.availableStock ?? 0) + operationForm.delta)
 const stockOptions = computed(() => Object.entries(STOCK_STATE_LABELS) as Array<[StockState, string]>)
 
 function getStockStateLabel(state: StockState) {
@@ -87,15 +89,38 @@ function openDialog(row: InventoryItemView, type: 'inbound' | 'adjustment') {
 }
 
 async function submitOperation() {
-  if (!currentItem.value) return
-  if (dialogType.value === 'inbound') {
-    await createInventoryInbound(shopId.value, { skuId: currentItem.value.skuId, quantity: operationForm.quantity, businessNo: operationForm.businessNo, remark: operationForm.remark })
-  } else {
-    await createInventoryAdjustment(shopId.value, { skuId: currentItem.value.skuId, delta: operationForm.delta, businessNo: operationForm.businessNo, remark: operationForm.remark, version: currentItem.value.version })
+  if (!currentItem.value || operationSubmitting.value) return
+  if (dialogType.value === 'adjustment' && operationForm.delta === 0) {
+    ElMessage.warning('调整数量不能为 0')
+    return
   }
-  ElMessage.success('库存操作成功')
-  dialogVisible.value = false
-  await loadInventory()
+  if (dialogType.value === 'adjustment' && !operationForm.remark.trim()) {
+    ElMessage.warning('请填写调整原因')
+    return
+  }
+  if (dialogType.value === 'adjustment' && operationForm.remark.trim().length > 500) {
+    ElMessage.warning('调整原因不能超过 500 个字符')
+    return
+  }
+  if (dialogType.value === 'adjustment' && adjustmentAfterStock.value < 0) {
+    ElMessage.warning('调整后库存不能小于 0')
+    return
+  }
+  operationSubmitting.value = true
+  try {
+    if (dialogType.value === 'inbound') {
+      await createInventoryInbound(shopId.value, { skuId: currentItem.value.skuId, quantity: operationForm.quantity, businessNo: operationForm.businessNo, remark: operationForm.remark })
+    } else {
+      await createInventoryAdjustment(shopId.value, { skuId: currentItem.value.skuId, delta: operationForm.delta, businessNo: operationForm.businessNo, remark: operationForm.remark, version: currentItem.value.version })
+    }
+    ElMessage.success('库存操作成功')
+    dialogVisible.value = false
+    await loadInventory()
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '库存操作失败，请稍后重试')
+  } finally {
+    operationSubmitting.value = false
+  }
 }
 
 watch(() => [filters.page, filters.pageSize], () => {
@@ -143,11 +168,15 @@ onMounted(loadInventory)
         <el-table-column prop="lockedStock" label="锁定库存" width="110" />
         <el-table-column prop="safetyStock" label="安全库存" width="110" />
         <el-table-column prop="version" label="版本" width="80" />
-        <el-table-column label="操作" fixed="right" width="220">
+        <el-table-column label="操作" fixed="right" width="230">
           <template #default="{ row }">
-            <el-button text type="primary" @click="goDetail(row)">详情</el-button>
-            <el-button text type="success" @click="openDialog(row, 'inbound')">入库</el-button>
-            <el-button text type="warning" @click="openDialog(row, 'adjustment')">调整</el-button>
+            <div class="operation-group">
+              <el-button-group>
+                <el-button size="small" type="primary" plain @click="goDetail(row)">详情</el-button>
+                <el-button size="small" type="success" plain @click="openDialog(row, 'inbound')">入库</el-button>
+                <el-button size="small" type="warning" plain @click="openDialog(row, 'adjustment')">调整</el-button>
+              </el-button-group>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -159,9 +188,10 @@ onMounted(loadInventory)
       <el-form :model="operationForm" label-width="90px">
         <el-form-item label="当前 SKU">{{ currentItem?.skuName }}</el-form-item>
         <el-form-item v-if="dialogType === 'inbound'" label="入库数量"><el-input-number v-model="operationForm.quantity" :min="1" /></el-form-item>
-        <el-form-item v-else label="调整数量"><el-input-number v-model="operationForm.delta" /></el-form-item>
+        <el-form-item v-else label="调整数量"><el-input-number v-model="operationForm.delta" /><div class="form-tip">正数为增加库存，负数为减少库存</div></el-form-item>
+        <el-form-item v-if="dialogType === 'adjustment'" label="调整后库存"><el-tag :type="adjustmentAfterStock < 0 ? 'danger' : 'success'">{{ adjustmentAfterStock }}</el-tag></el-form-item>
         <el-form-item label="业务单号"><el-input v-model="operationForm.businessNo" /></el-form-item>
-        <el-form-item label="备注"><el-input v-model="operationForm.remark" type="textarea" :rows="3" /></el-form-item>
+        <el-form-item label="调整原因" required><el-input v-model="operationForm.remark" type="textarea" :rows="3" maxlength="500" show-word-limit placeholder="请输入库存调整原因" /></el-form-item>
       </el-form>
       <template #footer><el-button @click="dialogVisible = false">取消</el-button><el-button type="primary" @click="submitOperation">确认</el-button></template>
     </el-dialog>
@@ -180,4 +210,7 @@ onMounted(loadInventory)
 .name { color: #111827; font-weight: 600; }
 .meta { margin-top: 4px; color: #6b7280; font-size: 12px; }
 .pagination { display: flex; justify-content: flex-end; margin-top: 16px; }
+.operation-group { display: flex; justify-content: center; }
+.operation-group :deep(.el-button) { min-width: 58px; }
+.form-tip { margin-top: 4px; color: #94a3b8; font-size: 12px; line-height: 1.4; }
 </style>
