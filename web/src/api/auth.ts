@@ -93,8 +93,8 @@ export async function register(data: RegisterRequest) {
   return await request.post<UserSummaryView>('/auth/register', data) as unknown as UserSummaryView
 }
 
-export async function logout() {
-  await request.post('/auth/logout')
+export async function logout(token?: string) {
+  await request.post('/auth/logout', undefined, token ? { headers: { satoken: token } } : undefined)
 }
 
 export async function getCurrentUser(token?: string) {

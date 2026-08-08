@@ -9,14 +9,12 @@ import EmptyState from '@/components/common/EmptyState.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import ConfirmActionButton from '@/components/common/ConfirmActionButton.vue'
 import { addShopMember, changeShopMemberRole, changeShopMemberStatus, listShopMembers } from '@/api/merchant/members'
-import { listRoles } from '@/api/admin/rbac'
 import type { MerchantMemberQuery, MerchantMemberRole, MerchantMemberStatus, MerchantMemberView } from '@/types/merchant'
-import type { RoleRecord } from '@/types/admin'
+import type { Id } from '@/types/common'
 
 const route = useRoute()
 const shopId = computed(() => String(route.params.shopId))
 const rows = ref<MerchantMemberView[]>([])
-const roles = ref<RoleRecord[]>([])
 const total = ref(0)
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -28,7 +26,13 @@ const rules: FormRules<typeof form> = {
   roleId: [{ required: true, message: '请选择店铺角色', trigger: 'change' }]
 }
 
-const roleOptions = computed(() => roles.value.filter((role) => role.code.startsWith('SHOP_')))
+const roleOptions = computed(() => {
+  const options = new Map<string, { id: Id; name: string }>()
+  for (const member of rows.value) {
+    if (member.roleId && member.roleName) options.set(String(member.roleId), { id: member.roleId, name: member.roleName })
+  }
+  return [...options.values()]
+})
 
 function statusLabel(status: MerchantMemberStatus) {
   return status === 'ACTIVE' ? '正常' : '已停用'
@@ -45,13 +49,9 @@ function roleLabel(role: MerchantMemberRole) {
 async function loadData() {
   loading.value = true
   try {
-    const [data, roleData] = await Promise.all([
-      listShopMembers(shopId.value, query),
-      roles.value.length ? Promise.resolve({ items: roles.value }) : listRoles({ scopeType: 'SHOP', status: 'ACTIVE', page: 1, pageSize: 100 })
-    ])
+    const data = await listShopMembers(shopId.value, query)
     rows.value = data.items
     total.value = data.total
-    roles.value = roleData.items
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '成员数据加载失败')
   } finally {
@@ -79,7 +79,7 @@ async function submit() {
 }
 
 async function updateRole(row: MerchantMemberView) {
-  const roleId = roleOptions.value.find((role) => String(role.code) !== String(row.roleCode) && String(role.code) !== 'SUPER_ADMIN')?.id
+  const roleId = roleOptions.value.find((role) => String(role.id) !== String(row.roleId))?.id
   if (!roleId) {
     ElMessage.warning('暂无可切换的店铺角色')
     return

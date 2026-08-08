@@ -57,6 +57,7 @@ export interface MerchantMemberView {
   id: Id
   username: string
   nickname: string
+  roleId: Id
   roleCode: MerchantMemberRole
   roleName: string
   status: MerchantMemberStatus
@@ -360,7 +361,8 @@ export interface OrderStatusHistoryView {
   createdAt: Timestamp
 }
 
-export interface OrderDetailView extends Omit<ShopOrderSummaryView, 'itemSummary' | 'itemKinds' | 'totalQuantity' | 'createdAt'> {
+export interface OrderDetailView extends Omit<ShopOrderSummaryView, 'itemSummary' | 'itemKinds' | 'totalQuantity' | 'createdAt' | 'buyer'> {
+  buyer?: UserSummary
   itemAmount: Money
   freightAmount: Money
   buyerRemark: string | null

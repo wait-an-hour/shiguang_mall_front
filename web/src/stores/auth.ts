@@ -63,7 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     try {
-      if (token.value) await logoutApi()
+      if (token.value) await logoutApi(token.value)
     } finally {
       clearSession()
     }

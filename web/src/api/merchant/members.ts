@@ -30,6 +30,7 @@ function toMemberView(item: BackendMemberView): MerchantMemberView {
     id: item.user.id,
     username: item.user.username,
     nickname: item.user.nickname,
+    roleId: item.role.id,
     roleCode: item.role.roleCode,
     roleName: item.role.roleName,
     status: item.status,

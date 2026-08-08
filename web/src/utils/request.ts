@@ -29,17 +29,17 @@ const request = axios.create({
   headers: { Accept: 'application/json', 'Content-Type': 'application/json' }
 })
 
-function handleAuthExpired(code?: string, status?: number) {
-  if ((code && AUTH_ERROR_CODES.has(code)) || status === 401) {
-    useAdminAuthStore().clearSession()
-    useAuthStore().clearSession()
-    router.replace({ path: '/login' })
-  }
+function handleAuthExpired(code?: string, status?: number, requestUrl?: string) {
+  if (!((code && AUTH_ERROR_CODES.has(code)) || status === 401)) return
+
+  if (requestUrl?.startsWith('/platform/')) useAdminAuthStore().clearSession()
+  else useAuthStore().clearSession()
+  router.replace({ path: '/login' })
 }
 
-function unwrapResponse<T>(payload: ApiResponse<T>) {
+function unwrapResponse<T>(payload: ApiResponse<T>, requestUrl?: string) {
   if (payload.code !== 'OK') {
-    handleAuthExpired(payload.code)
+    handleAuthExpired(payload.code, undefined, requestUrl)
     throw new ApiRequestError(payload.message || '请求处理失败', {
       code: payload.code,
       requestId: payload.requestId
@@ -53,18 +53,19 @@ request.interceptors.request.use((config) => {
   const userAuth = useAuthStore()
   const requestToken = config.headers?.satoken
   const isLoginRequest = config.url?.endsWith('/auth/login')
-  const token = requestToken || (isLoginRequest ? '' : adminAuth.token || userAuth.token)
+  const isAdminRequest = config.url?.startsWith('/platform/')
+  const token = requestToken || (isLoginRequest ? '' : isAdminRequest ? adminAuth.token : userAuth.token)
   if (token) config.headers.satoken = token
   else delete config.headers.satoken
   return config
 })
 
 request.interceptors.response.use(
-  (response) => unwrapResponse(response.data),
+  (response) => unwrapResponse(response.data, response.config.url),
   (error: AxiosError<ApiErrorResponse>) => {
     const status = error.response?.status
     const data = error.response?.data
-    handleAuthExpired(data?.code, status)
+    handleAuthExpired(data?.code, status, error.config?.url)
 
     return Promise.reject(new ApiRequestError(data?.message || error.message || '网络请求失败', {
       code: data?.code || 'NETWORK_ERROR',

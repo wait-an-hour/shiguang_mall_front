@@ -27,8 +27,11 @@ const canShip = computed(() => detail.value?.orderStatus === 'PENDING_SHIPMENT' 
 
 async function loadDetail() {
   loading.value = true
+  detail.value = null
   try {
     detail.value = await getMerchantOrderDetail(shopId.value, orderId.value)
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '订单详情加载失败')
   } finally {
     loading.value = false
   }
@@ -91,7 +94,7 @@ onMounted(loadDetail)
       </el-card>
 
       <el-row :gutter="16">
-        <el-col :span="12"><el-card class="page-card" shadow="never"><template #header>买家信息</template><el-descriptions :column="1" border><el-descriptions-item label="买家">{{ detail.buyer.nickname }}（{{ detail.buyer.username }}）</el-descriptions-item><el-descriptions-item label="买家备注">{{ detail.buyerRemark || '无' }}</el-descriptions-item></el-descriptions></el-card></el-col>
+        <el-col :span="12"><el-card class="page-card" shadow="never"><template #header>买家信息</template><el-descriptions :column="1" border><el-descriptions-item label="买家">{{ detail.buyer ? `${detail.buyer.nickname}（${detail.buyer.username}）` : '暂无买家信息' }}</el-descriptions-item><el-descriptions-item label="买家备注">{{ detail.buyerRemark || '无' }}</el-descriptions-item></el-descriptions></el-card></el-col>
         <el-col :span="12"><el-card class="page-card" shadow="never"><template #header>收货地址</template><el-descriptions :column="1" border><el-descriptions-item label="收件人">{{ detail.address.recipientName }} {{ detail.address.recipientPhone }}</el-descriptions-item><el-descriptions-item label="地址">{{ detail.address.provinceName }}{{ detail.address.cityName }}{{ detail.address.districtName }}{{ detail.address.detailAddress }}</el-descriptions-item></el-descriptions></el-card></el-col>
       </el-row>
 
