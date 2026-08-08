@@ -3,12 +3,14 @@ import type { PageView } from '@/types/common'
 import type { AfterSaleStatus, OrderStatus, PlatformOrder } from '@/types/admin'
 
 interface OperationOrderView {
+  id: string
   orderNo: string
-  shopName: string
-  buyerName: string
-  amount: string
+  shop: { shopName: string }
+  buyer: { nickname?: string; username?: string }
+  payableAmount: string
   orderStatus: OrderStatus
   paymentStatus: string
+  itemSummary: Array<{ productName: string; skuName: string; quantity: number }>
   createdAt: string
 }
 
@@ -50,9 +52,9 @@ async function count<T>(url: string, params: Record<string, unknown>) {
 }
 
 async function loadLowStockCount() {
-  const shops = await request.get<PageView<{ shop: { id: string } }>>('/platform/shops', { params: { page: 1, pageSize: 200 } }) as unknown as PageView<{ shop: { id: string } }>
-  const counts = await Promise.all(shops.items.map((item) => request.get<PageView<InventoryItemView>>(`/shops/${item.shop.id}/inventory`, { params: { page: 1, pageSize: 1, stockState: 'LOW_STOCK' } }) as unknown as Promise<PageView<InventoryItemView>>))
-  return counts.reduce((sum, item) => sum + item.total, 0)
+  const shops = await request.get<PageView<{ shop: { id: string } }>>('/platform/shops', { params: { page: 1, pageSize: 100 } }) as unknown as PageView<{ shop: { id: string } }>
+  const counts = await Promise.allSettled(shops.items.map((item) => request.get<PageView<InventoryItemView>>(`/shops/${item.shop.id}/inventory`, { params: { page: 1, pageSize: 1, stockState: 'LOW_STOCK' } }) as unknown as Promise<PageView<InventoryItemView>>))
+  return counts.reduce((sum, result) => sum + (result.status === 'fulfilled' ? result.value.total : 0), 0)
 }
 
 export async function getAdminDashboard() {
@@ -73,13 +75,13 @@ export async function getAdminDashboard() {
       `${products} 个商品待平台审核`
     ],
     recent: recent.items.map((item) => ({
-      id: item.orderNo,
+      id: item.id,
       orderNo: item.orderNo,
-      shopName: item.shopName,
-      buyerName: item.buyerName,
-      amount: item.amount,
+      shopName: item.shop.shopName,
+      buyerName: item.buyer.nickname || item.buyer.username || '-',
+      amount: item.payableAmount,
       status: item.orderStatus,
-      products: [],
+      products: item.itemSummary.map((product) => `${product.productName} / ${product.skuName} x${product.quantity}`),
       createdAt: item.createdAt
     })) as PlatformOrder[]
   }
