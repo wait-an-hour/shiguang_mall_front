@@ -49,7 +49,8 @@ function openShipDialog() {
 }
 
 async function submitShip() {
-  await formRef.value?.validate()
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) return
   submitting.value = true
   try {
     detail.value = await shipMerchantOrder(shopId.value, orderId.value, {
@@ -60,6 +61,8 @@ async function submitShip() {
     ElMessage.success('发货成功')
     dialogVisible.value = false
     await loadDetail()
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '发货失败')
   } finally {
     submitting.value = false
   }
