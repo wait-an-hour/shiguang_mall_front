@@ -159,7 +159,8 @@ public final class ShopProductDtos {
     public record ProductReviewSummaryView(
             String spuId, String spuNo, String productName, String coverUrl,
             org.dhu.shiguang_market.common.api.CommonViews.ShopSummary shop,
-            CategoryBrief category, int contentVersion, OffsetDateTime submittedAt) {
+            CategoryBrief category, int skuCount, int totalAvailableStock,
+            int contentVersion, OffsetDateTime submittedAt) {
     }
 
     public record ProductReviewSkuView(

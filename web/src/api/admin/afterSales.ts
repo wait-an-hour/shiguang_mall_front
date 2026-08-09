@@ -20,23 +20,28 @@ export interface OperationAfterSaleView {
   requestType: AfterSaleType
   status: AfterSaleStatus
   refundStatus: RefundStatus
-  orderNo: string
-  shopName: string
-  buyerName: string
-  amount: string
-  reason: string
+  order: { orderNo: string }
+  shop: { shopName: string }
+  item: { productName: string; skuName: string }
+  quantity: number
+  requestedAmount: string
+  approvedAmount: string
+  reasonCode: string
+  reasonDescription: string
   createdAt: string
+  updatedAt: string
+  buyer: { nickname?: string; username?: string }
 }
 
 function toPlatform(item: OperationAfterSaleView): PlatformAfterSale {
   return {
     id: item.id,
     serviceNo: item.afterSaleNo,
-    orderNo: item.orderNo,
-    shopName: item.shopName,
-    buyerName: item.buyerName,
-    amount: item.amount,
-    reason: item.reason,
+    orderNo: item.order.orderNo,
+    shopName: item.shop.shopName,
+    buyerName: item.buyer.nickname || item.buyer.username || '-',
+    requestedAmount: item.requestedAmount,
+    reason: item.reasonDescription ? `${item.reasonCode}：${item.reasonDescription}` : item.reasonCode,
     status: item.status,
     auditRemark: '',
     createdAt: item.createdAt

@@ -30,9 +30,11 @@ import org.dhu.shiguang_market.product.mapper.ProductAttributeValueMapper;
 import org.dhu.shiguang_market.product.mapper.ProductBrandMapper;
 import org.dhu.shiguang_market.product.mapper.ProductCategoryAttributeMapper;
 import org.dhu.shiguang_market.product.mapper.ProductCategoryMapper;
+import org.dhu.shiguang_market.inventory.mapper.InventoryStockMapper;
 import org.dhu.shiguang_market.product.mapper.ProductSkuMapper;
 import org.dhu.shiguang_market.product.mapper.ProductSpuMapper;
 import org.dhu.shiguang_market.product.mapper.ProductStatusHistoryMapper;
+import org.dhu.shiguang_market.inventory.model.InventoryStock;
 import org.dhu.shiguang_market.product.model.ProductAttributeValue;
 import org.dhu.shiguang_market.product.model.ProductBrand;
 import org.dhu.shiguang_market.product.model.ProductCategory;
@@ -53,6 +55,7 @@ public class ProductReviewService {
     private final ProductAttributeValueMapper valueMapper;
     private final ProductBrandMapper brandMapper;
     private final ProductStatusHistoryMapper historyMapper;
+    private final InventoryStockMapper stockMapper;
     private final ShopMapper shopMapper;
     private final SysUserMapper userMapper;
     private final CurrentUserService currentUser;
@@ -60,8 +63,8 @@ public class ProductReviewService {
     public ProductReviewService(ProductSpuMapper spuMapper, ProductSkuMapper skuMapper,
                                 ProductCategoryMapper categoryMapper, ProductCategoryAttributeMapper templateMapper,
                                 ProductAttributeValueMapper valueMapper, ProductBrandMapper brandMapper,
-                                ProductStatusHistoryMapper historyMapper, ShopMapper shopMapper,
-                                SysUserMapper userMapper, CurrentUserService currentUser) {
+                                ProductStatusHistoryMapper historyMapper, InventoryStockMapper stockMapper,
+                                ShopMapper shopMapper, SysUserMapper userMapper, CurrentUserService currentUser) {
         this.spuMapper = spuMapper;
         this.skuMapper = skuMapper;
         this.categoryMapper = categoryMapper;
@@ -69,6 +72,7 @@ public class ProductReviewService {
         this.valueMapper = valueMapper;
         this.brandMapper = brandMapper;
         this.historyMapper = historyMapper;
+        this.stockMapper = stockMapper;
         this.shopMapper = shopMapper;
         this.userMapper = userMapper;
         this.currentUser = currentUser;
@@ -319,9 +323,18 @@ public class ProductReviewService {
                 .eq(ProductStatusHistory::getSpuId, spu.getId())
                 .eq(ProductStatusHistory::getOperationType, ProductOperationType.SUBMIT_REVIEW)
                 .orderByDesc(ProductStatusHistory::getId).last("LIMIT 1"));
+        List<Long> skuIds = skuMapper.selectList(new LambdaQueryWrapper<ProductSku>()
+                .select(ProductSku::getId)
+                .eq(ProductSku::getSpuId, spu.getId()))
+                .stream().map(ProductSku::getId).toList();
+        int skuCount = skuIds.size();
+        int availableQuantity = skuIds.isEmpty() ? 0 : stockMapper.selectList(new LambdaQueryWrapper<InventoryStock>()
+                .in(InventoryStock::getSkuId, skuIds)).stream()
+                .mapToInt(stock -> stock.getAvailableQuantity() == null ? 0 : stock.getAvailableQuantity())
+                .sum();
         return new ProductReviewSummaryView(id(spu.getId()), spu.getSpuNo(), spu.getProductName(), spu.getCoverUrl(),
                 IdentityViewMapper.shop(shop), new CategoryBrief(id(category.getId()), category.getCategoryCode(), category.getCategoryName()),
-                spu.getContentVersion(), submitted == null ? time(spu.getUpdatedAt()) : time(submitted.getCreatedAt()));
+                skuCount, availableQuantity, spu.getContentVersion(), submitted == null ? time(spu.getUpdatedAt()) : time(submitted.getCreatedAt()));
     }
 
     private ProductStatusHistoryView history(ProductStatusHistory value) {

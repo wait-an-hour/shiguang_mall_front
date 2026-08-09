@@ -40,25 +40,21 @@ async function count<T>(url: string, params: Record<string, unknown>) {
   return data.total
 }
 
-async function loadLowStockCount() {
-  return 0
-}
-
 export async function getAdminDashboard() {
-  const [products, orders, pendingAfterSale, lowStock] = await Promise.all([
+  const [products, orders, shops, pendingAfterSaleAppeals] = await Promise.all([
     count<ProductReviewSummaryView>('/platform/products/reviews', {}),
     count<OperationOrderView>('/platform/operations/orders', {}),
-    count<OperationAfterSaleView>('/platform/operations/after-sales', { status: 'PENDING' }),
-    loadLowStockCount()
+    count<{ shop: { id: string } }>('/platform/shops', { status: 'ACTIVE' }),
+    count<{ id: string }>('/platform/after-sale-appeals', { status: 'PENDING' })
   ])
 
   const recent = await request.get<PageView<OperationOrderView>>('/platform/operations/orders', { params: { page: 1, pageSize: 3 } }) as unknown as PageView<OperationOrderView>
 
   return {
-    metrics: { products, orders, lowStock, pendingAfterSale },
+    metrics: { products, orders, shops, pendingAfterSale: pendingAfterSaleAppeals },
     tasks: [
-      `${lowStock} 个 SKU 库存低于预警线`,
-      `${pendingAfterSale} 笔售后纠纷等待平台审核`,
+      `${shops} 家平台店铺正在营业`,
+      `${pendingAfterSaleAppeals} 笔售后申诉等待平台裁决`,
       `${products} 个商品待平台审核`
     ],
     recent: recent.items.map((item) => ({

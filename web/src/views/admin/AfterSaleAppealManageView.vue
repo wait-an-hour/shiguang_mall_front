@@ -31,7 +31,7 @@ onMounted(load)
   <div class="appeal-page">
     <PageHeader title="售后申诉" description="处理商家拒绝或超时触发的平台售后申诉，所有裁决均提交真实接口。" />
     <el-card class="sg-card" shadow="never">
-      <el-form inline @submit.prevent="load"><el-form-item label="申诉状态"><el-select v-model="query.status" clearable placeholder="全部"><el-option label="待裁决" value="PENDING" /><el-option label="已同意" value="APPROVED" /><el-option label="已驳回" value="REJECTED" /></el-select></el-form-item><el-form-item label="售后单号"><el-input v-model="query.afterSaleNo" clearable placeholder="请输入售后单号" /></el-form-item><el-button type="primary" @click="query.page = 1; load()">查询</el-button></el-form>
+      <el-form class="appeal-filter-form" inline @submit.prevent="load"><el-form-item label="申诉状态"><el-select v-model="query.status" clearable placeholder="全部" class="appeal-status-select"><el-option label="待裁决" value="PENDING" /><el-option label="已同意" value="APPROVED" /><el-option label="已驳回" value="REJECTED" /></el-select></el-form-item><el-form-item label="售后单号"><el-input v-model="query.afterSaleNo" clearable placeholder="请输入售后单号" /></el-form-item><el-button type="primary" @click="query.page = 1; load()">查询</el-button></el-form>
     </el-card>
     <el-card class="sg-card" shadow="never" v-loading="loading"><el-table :data="rows" empty-text="暂无申诉"><el-table-column prop="appealNo" label="申诉编号" min-width="150" /><el-table-column prop="afterSaleNo" label="售后单号" min-width="150" /><el-table-column prop="shop.name" label="店铺" /><el-table-column prop="buyer.nickname" label="买家" /><el-table-column prop="requestedAmount" label="申请金额" /><el-table-column label="状态"><template #default="{ row }"><StatusTag :label="getStatusLabel(row.status)" :type="statusType(row.status)" /></template></el-table-column><el-table-column label="创建时间" min-width="160"><template #default="{ row }">{{ formatDate(row.createdAt) }}</template></el-table-column><el-table-column label="操作" width="180" fixed="right"><template #default="{ row }"><el-button link type="primary" @click="openDetail(row)">详情</el-button><el-button v-if="row.status === 'PENDING'" link type="success" @click="openDecision(row, 'APPROVE')">同意</el-button><el-button v-if="row.status === 'PENDING'" link type="danger" @click="openDecision(row, 'REJECT')">驳回</el-button></template></el-table-column></el-table><AppPagination :page="query.page" :page-size="query.pageSize" :total="total" @change="Object.assign(query, $event); load()" /></el-card>
     <el-drawer v-model="detailVisible" title="申诉详情" size="520px"><template v-if="detail"><el-descriptions :column="1" border><el-descriptions-item label="申诉编号">{{ detail.appealNo }}</el-descriptions-item><el-descriptions-item label="售后单号">{{ detail.afterSaleNo }}</el-descriptions-item><el-descriptions-item label="店铺/买家">{{ detail.shop.name }} / {{ detail.buyer.nickname }}</el-descriptions-item><el-descriptions-item label="申诉原因">{{ detail.reasonCode }}：{{ detail.reasonDescription }}</el-descriptions-item><el-descriptions-item label="商家审核">{{ detail.merchantReview?.comment || '-' }}</el-descriptions-item><el-descriptions-item label="裁决说明">{{ detail.decisionComment || '-' }}</el-descriptions-item><el-descriptions-item label="更新时间">{{ formatDate(detail.updatedAt) }}</el-descriptions-item></el-descriptions><div class="drawer-actions" v-if="detail.status === 'PENDING'"><el-button type="success" @click="openDecision(detail, 'APPROVE')">同意申诉</el-button><el-button type="danger" @click="openDecision(detail, 'REJECT')">驳回申诉</el-button></div></template></el-drawer>
@@ -39,4 +39,30 @@ onMounted(load)
   </div>
 </template>
 
-<style scoped lang="scss">.appeal-page { display: flex; flex-direction: column; gap: 16px; }.drawer-actions { margin-top: 20px; }</style>
+<style scoped lang="scss">
+.appeal-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.appeal-filter-form {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.appeal-filter-form :deep(.el-form-item) {
+  margin-bottom: 0;
+  flex: 0 0 auto;
+}
+
+.appeal-status-select {
+  width: 140px;
+}
+
+.drawer-actions {
+  margin-top: 20px;
+}
+</style>

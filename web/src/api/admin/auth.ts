@@ -38,34 +38,59 @@ const ADMIN_PERMISSION_BY_BACKEND: Record<string, PermissionCode> = {
   'platform:operation:read': 'admin:order:view'
 }
 
-const SUPER_ADMIN_PERMISSIONS: PermissionCode[] = [
-  'admin:dashboard:view',
-  'admin:rbac:role',
-  'admin:rbac:account',
-  'admin:catalog:category',
-  'admin:catalog:brand',
-  'admin:shop:manage',
-  'admin:product:view',
-  'admin:product:audit',
-  'admin:inventory:view',
-  'admin:order:view',
-  'admin:after-sale:audit'
-]
+const PLATFORM_ROLE_PERMISSION_MAP: Partial<Record<AdminRole, PermissionCode[]>> = {
+  SUPER_ADMIN: [
+    'admin:dashboard:view',
+    'admin:rbac:role',
+    'admin:rbac:account',
+    'admin:catalog:category',
+    'admin:catalog:brand',
+    'admin:shop:manage',
+    'admin:product:view',
+    'admin:product:audit',
+    'admin:inventory:view',
+    'admin:order:view',
+    'admin:after-sale:audit'
+  ],
+  PLATFORM_SHOP_ADMIN: ['admin:shop:manage', 'admin:rbac:account'],
+  PLATFORM_PRODUCT_AUDITOR: ['admin:product:view', 'admin:product:audit'],
+  SHOP_ADMIN: ['admin:dashboard:view'],
+  SHOP_PRODUCT_OPERATOR: ['admin:product:view'],
+  SHOP_ORDER_OPERATOR: ['admin:order:view', 'admin:inventory:view'],
+  SHOP_INVENTORY_OPERATOR: ['admin:inventory:view'],
+  CUSTOMER: []
+}
 
 function toAdminRole(roles: string[], shops: CurrentUserView['shops']): AdminRole {
+  // 后端登录态里同一个账号可能只给出平台角色编码或店铺角色编码，因此这里要把它们统一翻译成前端可识别的角色。
+  // 平台店铺管理员、平台商品审核员、各类店铺角色都要能被正确识别，这样后面的跳转和菜单权限才不会落到“无权访问”。
   if (roles.includes('SUPER_ADMIN')) return 'SUPER_ADMIN'
+  if (roles.includes('PLATFORM_SHOP_ADMIN')) return 'PLATFORM_SHOP_ADMIN'
+  if (roles.includes('PLATFORM_PRODUCT_AUDITOR')) return 'PLATFORM_PRODUCT_AUDITOR'
+  if (roles.includes('SHOP_ADMIN')) return 'SHOP_ADMIN'
+  if (roles.includes('SHOP_PRODUCT_OPERATOR')) return 'SHOP_PRODUCT_OPERATOR'
+  if (roles.includes('SHOP_ORDER_OPERATOR')) return 'SHOP_ORDER_OPERATOR'
+  if (roles.includes('SHOP_INVENTORY_OPERATOR')) return 'SHOP_INVENTORY_OPERATOR'
+  if (roles.includes('CUSTOMER')) return 'CUSTOMER'
   if (roles.some((role) => role.includes('AUDIT'))) return 'AUDIT_ADMIN'
   if (shops.length > 0) return 'MERCHANT'
   return 'OPERATION_ADMIN'
 }
 
 function toPermissions(current: CurrentUserView): PermissionCode[] {
-  if (current.platformRoles.includes('SUPER_ADMIN')) return SUPER_ADMIN_PERMISSIONS
+  const primaryRole = toAdminRole(current.platformRoles, current.shops)
+  const mappedByRole = PLATFORM_ROLE_PERMISSION_MAP[primaryRole] ?? []
 
-  const mapped = current.platformPermissions.flatMap((permission) => {
+  if (primaryRole === 'SUPER_ADMIN') {
+    return mappedByRole
+  }
+
+  const mappedByBackend = current.platformPermissions.flatMap((permission) => {
     const matched = ADMIN_PERMISSION_BY_BACKEND[permission]
     return matched ? [matched] : []
   })
+
+  const mapped = [...mappedByRole, ...mappedByBackend]
 
   if (mapped.includes('admin:catalog:category')) mapped.push('admin:catalog:brand')
   if (mapped.includes('admin:shop:manage')) mapped.push('admin:dashboard:view')
@@ -76,11 +101,12 @@ function toPermissions(current: CurrentUserView): PermissionCode[] {
 }
 
 function toPlatformUser(current: CurrentUserView): PlatformUser {
+  const role = toAdminRole(current.platformRoles, current.shops)
   return {
     id: current.user.id,
     username: current.user.username,
     displayName: current.user.nickname || current.user.username,
-    role: toAdminRole(current.platformRoles, current.shops),
+    role,
     permissions: toPermissions(current),
     status: current.user.status
   }
@@ -91,8 +117,12 @@ export async function loginAdmin(username: string, password: string) {
   const current = await request.get<CurrentUserView>('/auth/me', { headers: { satoken: login.tokenValue } }) as unknown as CurrentUserView
   const user = toPlatformUser(current)
 
-  if (user.permissions.length === 0 || user.role === 'MERCHANT') {
+  if (user.role === 'MERCHANT') {
     throw new Error('当前账号不是平台管理员账号')
+  }
+
+  if (user.permissions.length === 0) {
+    throw new Error('当前账号没有可用的后台权限')
   }
 
   return {

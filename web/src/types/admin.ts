@@ -2,7 +2,20 @@ export type Id = string
 export type Money = string
 export type Timestamp = string
 
-export type AdminRole = 'SUPER_ADMIN' | 'OPERATION_ADMIN' | 'AUDIT_ADMIN' | 'MERCHANT'
+// 平台端与商家端会共用一部分账号模型，所以这里把前端会展示或判断到的角色一次性补齐。
+// 这样登录态、菜单权限、角色管理页和账号管理页可以使用同一套类型，避免不同页面各自写死角色常量。
+export type AdminRole =
+  | 'SUPER_ADMIN'
+  | 'OPERATION_ADMIN'
+  | 'AUDIT_ADMIN'
+  | 'MERCHANT'
+  | 'CUSTOMER'
+  | 'SHOP_ADMIN'
+  | 'SHOP_PRODUCT_OPERATOR'
+  | 'SHOP_ORDER_OPERATOR'
+  | 'SHOP_INVENTORY_OPERATOR'
+  | 'PLATFORM_SHOP_ADMIN'
+  | 'PLATFORM_PRODUCT_AUDITOR'
 export type AccountStatus = 'ACTIVE' | 'DISABLED' | 'LOCKED'
 export type CommonStatus = 'ENABLED' | 'DISABLED'
 export type ProductStatus = 'DRAFT' | 'PENDING_REVIEW' | 'ON_SHELF' | 'OFF_SHELF' | 'REJECTED' | 'BANNED'
@@ -63,7 +76,7 @@ export interface ShopMemberQuery {
 export interface RoleRecord {
   id: Id
   name: string
-  code: AdminRole
+  code: RoleCode
   description: string
   permissions: PermissionCode[]
   permissionIds?: Id[]
@@ -91,17 +104,37 @@ export interface BrandRecord {
   createdAt: Timestamp
 }
 
+export interface PlatformProductSku {
+  id: Id
+  skuNo: string
+  skuName: string
+  imageUrl?: string | null
+  salePrice: Money
+  marketPrice: Money
+  barcode: string
+  status: CommonStatus
+  version: number
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
 export interface PlatformProduct {
   id: Id
+  spuNo?: string
   name: string
+  coverImageUrl?: string | null
   shopName: string
   categoryName: string
   brandName: string
   price: Money
+  skuCount?: number
+  totalAvailableStock?: number
   status: ProductStatus
   reason?: string
   contentVersion?: number
   createdAt: Timestamp
+  updatedAt?: Timestamp
+  skus?: PlatformProductSku[]
 }
 
 export interface SkuInventory {
@@ -132,7 +165,7 @@ export interface PlatformAfterSale {
   orderNo: string
   shopName: string
   buyerName: string
-  amount: Money
+  requestedAmount: Money
   reason: string
   status: AfterSaleStatus
   auditRemark?: string

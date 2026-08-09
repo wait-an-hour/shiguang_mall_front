@@ -262,11 +262,23 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/layouts/AdminLayout.vue'),
     meta: {
       ...adminRouteMeta,
-      title: '平台后台',
-      permissions: ['admin:dashboard:view']
+      title: '平台后台'
     },
     children: [
-      { path: '', name: ROUTE_NAME.AdminDashboard, component: () => import('@/views/admin/AdminDashboardView.vue'), meta: { ...adminRouteMeta, title: '后台首页', permissions: ['admin:dashboard:view'] } },
+      {
+        path: '',
+        redirect: () => {
+          const adminAuthStore = useAdminAuthStore()
+          const role = adminAuthStore.role
+
+          // 不同平台后台角色各自跳到自己的首页，避免共用同一条 /admin/dashboard 链接。
+          // Pinia setup store 的返回值会自动解包，所以这里直接使用 role。
+          if (role === 'PLATFORM_PRODUCT_AUDITOR') return '/admin/products'
+          if (role === 'PLATFORM_SHOP_ADMIN') return '/admin/shops'
+          return '/admin/dashboard'
+        }
+      },
+      { path: 'dashboard', name: ROUTE_NAME.AdminDashboard, component: () => import('@/views/admin/AdminDashboardView.vue'), meta: { ...adminRouteMeta, title: '后台首页', permissions: ['admin:dashboard:view'] } },
       { path: 'rbac/roles', name: ROUTE_NAME.AdminRoles, component: () => import('@/views/admin/RoleManageView.vue'), meta: { ...adminRouteMeta, title: '角色管理', permissions: ['admin:rbac:role'] } },
       { path: 'rbac/accounts', name: ROUTE_NAME.AdminAccounts, component: () => import('@/views/admin/AccountManageView.vue'), meta: { ...adminRouteMeta, title: '账号管理', permissions: ['admin:rbac:account'] } },
       { path: 'catalog/categories', name: ROUTE_NAME.AdminCategories, component: () => import('@/views/admin/CategoryManageView.vue'), meta: { ...adminRouteMeta, title: '分类管理', permissions: ['admin:catalog:category'] } },
@@ -274,7 +286,6 @@ const routes: RouteRecordRaw[] = [
       { path: 'shops', name: ROUTE_NAME.AdminShops, component: () => import('@/views/admin/ShopManageView.vue'), meta: { ...adminRouteMeta, title: '店铺管理', permissions: ['admin:shop:manage'] } },
       { path: 'shops/members', name: ROUTE_NAME.AdminShopMembers, component: () => import('@/views/admin/ShopMemberManageView.vue'), meta: { ...adminRouteMeta, title: '店铺成员', permissions: ['admin:shop:manage'] } },
       { path: 'products', name: ROUTE_NAME.AdminProducts, component: () => import('@/views/admin/ProductManageView.vue'), meta: { ...adminRouteMeta, title: '商品管理', permissions: ['admin:product:view'] } },
-      { path: 'inventory', name: ROUTE_NAME.AdminInventory, component: () => import('@/views/admin/InventoryOverviewView.vue'), meta: { ...adminRouteMeta, title: '库存总览', permissions: ['admin:inventory:view'] } },
       { path: 'orders', name: ROUTE_NAME.AdminOrders, component: () => import('@/views/admin/OrderManageView.vue'), meta: { ...adminRouteMeta, title: '订单管理', permissions: ['admin:order:view'] } },
       { path: 'after-sales', name: ROUTE_NAME.AdminAfterSales, component: () => import('@/views/admin/AfterSaleReviewView.vue'), meta: { ...adminRouteMeta, title: '售后审核', permissions: ['admin:after-sale:audit'] } },
       { path: 'after-sale-appeals', name: ROUTE_NAME.AdminAfterSaleAppeals, component: () => import('@/views/admin/AfterSaleAppealManageView.vue'), meta: { ...adminRouteMeta, title: '售后申诉', permissions: ['admin:after-sale:audit'] } },
@@ -324,6 +335,8 @@ router.beforeEach((to) => {
       return { name: ROUTE_NAME.Forbidden }
     }
 
+    // 平台店铺管理员、平台商品审核员都属于平台后台合法身份，进入 /admin 后只按权限控制菜单和页面。
+    // 这里不再要求超级管理员角色，否则会把已经登录成功的合法平台账号错误拦到“无权访问”。
     setDocumentTitle(to.meta.title)
     return true
   }

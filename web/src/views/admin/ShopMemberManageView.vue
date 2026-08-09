@@ -43,7 +43,8 @@ function canEditShop() {
 }
 
 async function loadShops() {
-  const data = await getPlatformShops({ page: 1, pageSize: 200 })
+  // 后端店铺列表接口有分页上限，pageSize 过大时会拿不到可选店铺，导致右上角下拉显示 No data。
+  const data = await getPlatformShops({ page: 1, pageSize: 100 })
   shopOptions.value = data.items.map((item) => ({ id: item.shop.id, shopName: item.shop.shopName }))
   if (!currentShopId.value && shopOptions.value.length > 0) {
     currentShopId.value = shopOptions.value[0].id
@@ -93,14 +94,6 @@ async function toggleStatus(row: ShopMemberView) {
   void loadData()
 }
 
-async function switchRole(row: ShopMemberView) {
-  if (!currentShopId.value || roleOptions.value.length < 2) return
-  const nextRole = roleOptions.value.find((role) => String(role.code) !== String(row.roleCode))
-  if (!nextRole) return
-  await changeShopMemberRole(currentShopId.value, row.id, { roleId: nextRole.id })
-  ElMessage.success('成员角色已更新')
-  void loadData()
-}
 
 onMounted(async () => {
   await loadShops()
@@ -146,10 +139,9 @@ onMounted(async () => {
             <StatusTag :label="statusLabel(row.status)" :type="statusType(row.status)" />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="240">
+        <el-table-column label="操作" width="180">
           <template #default="{ row }">
             <div class="table-actions">
-              <el-button link type="primary" @click="switchRole(row)">切换角色</el-button>
               <ConfirmActionButton
                 :text="row.status === 'ACTIVE' ? '停用' : '启用'"
                 confirm-text="确认变更该店铺成员状态？"

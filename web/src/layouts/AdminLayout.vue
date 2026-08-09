@@ -4,28 +4,46 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowDown } from '@element-plus/icons-vue'
 import logoUrl from '@/assets/shiguang-logo.png'
 import { useAdminAuthStore } from '@/stores/adminAuth'
+import type { PermissionCode } from '@/types/admin'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAdminAuthStore()
 
-const menus = [
-  { title: '首页概览', path: '/admin', permission: 'admin:dashboard:view' },
-  { title: '角色管理', path: '/admin/rbac/roles', permission: 'admin:rbac:role' },
-  { title: '平台账号', path: '/admin/rbac/accounts', permission: 'admin:rbac:account' },
-  { title: '店铺成员', path: '/admin/shops/members', permission: 'admin:shop:manage' },
-  { title: '分类管理', path: '/admin/catalog/categories', permission: 'admin:catalog:category' },
-  { title: '品牌管理', path: '/admin/catalog/brands', permission: 'admin:catalog:brand' },
-  { title: '店铺管理', path: '/admin/shops', permission: 'admin:shop:manage' },
-  { title: '商品管理', path: '/admin/products', permission: 'admin:product:view' },
-  { title: '库存总览', path: '/admin/inventory', permission: 'admin:inventory:view' },
-  { title: '订单管理', path: '/admin/orders', permission: 'admin:order:view' },
-  { title: '售后审核', path: '/admin/after-sales', permission: 'admin:after-sale:audit' },
-  { title: '售后申诉', path: '/admin/after-sale-appeals', permission: 'admin:after-sale:audit' },
-  { title: '商家钱包', path: '/admin/merchant-wallets', permission: 'admin:operation:read' }
-] as const
+const homePath = computed(() => {
+  // 三类平台后台角色各自拥有自己的首页入口，避免共用一个总览链接。
+  // Pinia setup store 的返回值会自动解包，所以这里直接读 auth.role，不要再写 .value。
+  if (auth.role === 'PLATFORM_PRODUCT_AUDITOR') return '/admin/products'
+  if (auth.role === 'PLATFORM_SHOP_ADMIN') return '/admin/shops'
+  return '/admin/dashboard'
+})
 
-const visibleMenus = computed(() => menus.filter((item) => auth.hasPermissions([item.permission])))
+interface AdminMenuItem {
+  title: string
+  path: string
+  permissions: PermissionCode[]
+}
+
+const menus = computed<AdminMenuItem[]>(() => [
+  { title: '首页概览', path: homePath.value, permissions: ['admin:dashboard:view', 'admin:product:view', 'admin:shop:manage'] },
+  { title: '角色管理', path: '/admin/rbac/roles', permissions: ['admin:rbac:role'] },
+  { title: '平台账号', path: '/admin/rbac/accounts', permissions: ['admin:rbac:account'] },
+  { title: '店铺成员', path: '/admin/shops/members', permissions: ['admin:shop:manage'] },
+  { title: '分类管理', path: '/admin/catalog/categories', permissions: ['admin:catalog:category'] },
+  { title: '品牌管理', path: '/admin/catalog/brands', permissions: ['admin:catalog:brand'] },
+  { title: '店铺管理', path: '/admin/shops', permissions: ['admin:shop:manage'] },
+  { title: '商品管理', path: '/admin/products', permissions: ['admin:product:view'] },
+  { title: '订单管理', path: '/admin/orders', permissions: ['admin:order:view'] },
+  { title: '售后审核', path: '/admin/after-sales', permissions: ['admin:after-sale:audit'] },
+  { title: '售后申诉', path: '/admin/after-sale-appeals', permissions: ['admin:after-sale:audit'] },
+  { title: '商家钱包', path: '/admin/merchant-wallets', permissions: ['admin:operation:read'] }
+])
+
+const visibleMenus = computed(() => menus.value.filter((item) => {
+  // 平台店铺管理员没有独立首页，左侧直接隐藏“首页概览”，避免误导为与超级管理员共用首页。
+  if (auth.role === 'PLATFORM_SHOP_ADMIN' && item.title === '首页概览') return false
+  return auth.hasPermissions(item.permissions)
+}))
 
 function logout() {
   auth.clearSession()

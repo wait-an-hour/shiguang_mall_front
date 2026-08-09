@@ -6,6 +6,7 @@ export interface PlatformUserQuery {
   keyword?: string
   status?: string
   roleCode?: string
+  scopeType?: 'PLATFORM' | 'SHOP' | ''
   page?: number
   pageSize?: number
 }
@@ -64,7 +65,7 @@ export interface PermissionView {
 
 export interface RoleDetailView extends RoleRecord {
   status: 'ACTIVE' | 'DISABLED'
-  permissionIds: Id[]
+  permissions: PermissionView[]
   updatedAt?: string
 }
 
@@ -180,6 +181,10 @@ export function resetAccountPassword() {
 
 export function getRoleDetailView(role: RoleDetailView) {
   return normalizeRoleView(role)
+}
+
+export function getRoleDetail(roleId: Id) {
+  return request.get<RoleDetailView>(`/platform/rbac/roles/${roleId}`) as unknown as Promise<RoleDetailView>
 }
 
 export function listPermissions(query: RoleQuery = {}) {

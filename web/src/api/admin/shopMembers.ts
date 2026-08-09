@@ -15,19 +15,45 @@ export interface ChangeShopMemberStatusRequest {
   targetStatus: ShopMemberStatus
 }
 
+interface PlatformShopMemberView {
+  shopId: Id
+  user: { id: Id; username: string; nickname: string; avatarUrl: string | null; status: string; phone?: string | null }
+  role: { id: Id; roleCode: string; roleName: string; scopeType: 'PLATFORM' | 'SHOP'; description: string; status: 'ACTIVE' | 'DISABLED'; createdAt: string; updatedAt: string }
+  status: ShopMemberStatus
+  createdAt: string
+  updatedAt: string
+}
+
+function toShopMemberView(item: PlatformShopMemberView): ShopMemberView {
+  return {
+    id: item.user.id,
+    username: item.user.username,
+    nickname: item.user.nickname,
+    roleCode: item.role.roleCode as ShopMemberView['roleCode'],
+    roleName: item.role.roleName,
+    status: item.status,
+    phone: item.user.phone ?? null,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt
+  }
+}
+
 export async function listShopMembers(shopId: Id, query: ShopMemberQuery = {}) {
-  const data = await request.get<PageView<ShopMemberView>>(`/shops/${shopId}/members`, { params: query }) as unknown as PageView<ShopMemberView>
-  return data
+  const data = await request.get<PageView<PlatformShopMemberView>>(`/platform/shops/${shopId}/members`, { params: query }) as unknown as PageView<PlatformShopMemberView>
+  return { ...data, items: data.items.map(toShopMemberView) }
 }
 
-export function addShopMember(shopId: Id, data: AddShopMemberRequest) {
-  return request.post<ShopMemberView>(`/shops/${shopId}/members`, data) as unknown as Promise<ShopMemberView>
+export async function addShopMember(shopId: Id, data: AddShopMemberRequest) {
+  const result = await request.post<PlatformShopMemberView>(`/platform/shops/${shopId}/members`, data) as unknown as PlatformShopMemberView
+  return toShopMemberView(result)
 }
 
-export function changeShopMemberRole(shopId: Id, userId: Id, data: ChangeShopMemberRoleRequest) {
-  return request.put<ShopMemberView>(`/shops/${shopId}/members/${userId}/role`, data) as unknown as Promise<ShopMemberView>
+export async function changeShopMemberRole(shopId: Id, userId: Id, data: ChangeShopMemberRoleRequest) {
+  const result = await request.put<PlatformShopMemberView>(`/platform/shops/${shopId}/members/${userId}/role`, data) as unknown as PlatformShopMemberView
+  return toShopMemberView(result)
 }
 
-export function changeShopMemberStatus(shopId: Id, userId: Id, data: ChangeShopMemberStatusRequest) {
-  return request.post<ShopMemberView>(`/shops/${shopId}/members/${userId}/status`, data) as unknown as Promise<ShopMemberView>
+export async function changeShopMemberStatus(shopId: Id, userId: Id, data: ChangeShopMemberStatusRequest) {
+  const result = await request.post<PlatformShopMemberView>(`/platform/shops/${shopId}/members/${userId}/status`, data) as unknown as PlatformShopMemberView
+  return toShopMemberView(result)
 }

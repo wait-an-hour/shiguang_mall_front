@@ -53,6 +53,27 @@ a { color: inherit; text-decoration: none; }
   flex-wrap: wrap;
 }
 
+/* 后台列表页里的表格内容统一居中，直接作用到 Element Plus 的单元格内容层。 */
+.page-view .el-table th.el-table__cell,
+.page-view .el-table td.el-table__cell,
+.page-view .el-table th.el-table__cell .cell,
+.page-view .el-table td.el-table__cell .cell {
+  text-align: center !important;
+}
+
+/* 后台列表页里的操作按钮组也居中，避免按钮在视觉上偏向一侧。 */
+.page-view .table-actions {
+  justify-content: center !important;
+}
+
+/* 某些表格列右侧会被悬浮工具或单元格层级影响，操作按钮需要独立抬高点击层级。 */
+.table-actions-guard {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
 .muted { color: var(--sg-text-secondary); }
 
 .metric-grid {
