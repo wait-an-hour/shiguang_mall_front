@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import logoUrl from '@/assets/shiguang-logo.png'
 import { ROUTE_NAME } from '@/constants/routes'
+import { SHOP_PERMISSION } from '@/constants/merchant'
 import { loginAdmin } from '@/api/admin/auth'
 import { useAdminAuthStore } from '@/stores/adminAuth'
 import { useAuthStore } from '@/stores/auth'
@@ -58,8 +59,21 @@ async function submit() {
         return
       }
       merchantStore.setCurrentShop(firstShop.id)
+      const routeName = firstShop.roleCode === 'SHOP_ADMIN'
+        ? ROUTE_NAME.MerchantDashboard
+        : firstShop.permissions.includes(SHOP_PERMISSION.ProductManage)
+          ? ROUTE_NAME.MerchantProductList
+          : firstShop.permissions.includes(SHOP_PERMISSION.InventoryManage)
+            ? ROUTE_NAME.MerchantInventoryList
+            : firstShop.permissions.includes(SHOP_PERMISSION.OrderRead)
+              ? ROUTE_NAME.MerchantOrderList
+              : firstShop.permissions.includes(SHOP_PERMISSION.AfterSaleManage)
+                ? ROUTE_NAME.MerchantAfterSaleList
+                : firstShop.permissions.includes(SHOP_PERMISSION.WalletRead)
+                  ? ROUTE_NAME.MerchantWallet
+                  : ROUTE_NAME.MerchantMemberList
       ElMessage.success('登录成功')
-      await router.replace({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: firstShop.id } })
+      await router.replace({ name: routeName, params: { shopId: firstShop.id } })
       return
     }
 

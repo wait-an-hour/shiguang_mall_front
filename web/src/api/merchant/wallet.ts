@@ -35,7 +35,12 @@ export interface MerchantWithdrawalQuery {
 }
 
 export function getMerchantWalletTransactions(shopId: Id, params: MerchantWalletTransactionQuery = {}) {
-  return request.get<MerchantWalletTransactionPage>(`/shops/${shopId}/merchant-wallet/transactions`, { params }) as unknown as Promise<MerchantWalletTransactionPage>
+  const query = {
+    ...params,
+    businessType: params.businessType?.trim() ?? '',
+    businessNo: params.businessNo?.trim() || undefined
+  }
+  return request.get<MerchantWalletTransactionPage>(`/shops/${shopId}/merchant-wallet/transactions`, { params: query }) as unknown as Promise<MerchantWalletTransactionPage>
 }
 
 export function getMerchantSettlements(shopId: Id, params: MerchantSettlementQuery = {}) {

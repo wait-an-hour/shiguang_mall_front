@@ -20,6 +20,7 @@ export type PermissionCode =
   | 'admin:inventory:view'
   | 'admin:order:view'
   | 'admin:after-sale:audit'
+  | 'admin:operation:read'
   | 'shop:home:view'
 
 export interface PlatformUser {

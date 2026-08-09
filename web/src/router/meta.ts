@@ -10,6 +10,7 @@ declare module 'vue-router' {
     permissions?: PermissionCode[] | string[]
     role?: string
     shopScoped?: boolean
+    shopRole?: string
   }
 }
 

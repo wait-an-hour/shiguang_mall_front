@@ -8,6 +8,7 @@ export interface ShopSummary {
   name: string
   code: string
   status: ShopStatus
+  roleCode: MerchantMemberRole
   permissions: string[]
 }
 

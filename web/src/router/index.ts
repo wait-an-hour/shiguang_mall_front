@@ -99,15 +99,7 @@ const routes: RouteRecordRaw[] = [
           layout: 'merchant',
           requiresAuth: true,
           shopScoped: true,
-          permissions: [
-            SHOP_PERMISSION.ProductManage,
-            SHOP_PERMISSION.InventoryManage,
-            SHOP_PERMISSION.OrderRead,
-            SHOP_PERMISSION.AfterSaleManage,
-            SHOP_PERMISSION.WalletRead,
-            SHOP_PERMISSION.MemberManage
-          ],
-          permissionMode: 'any'
+          shopRole: 'SHOP_ADMIN'
         }
       },
       {
@@ -285,7 +277,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'inventory', name: ROUTE_NAME.AdminInventory, component: () => import('@/views/admin/InventoryOverviewView.vue'), meta: { ...adminRouteMeta, title: '库存总览', permissions: ['admin:inventory:view'] } },
       { path: 'orders', name: ROUTE_NAME.AdminOrders, component: () => import('@/views/admin/OrderManageView.vue'), meta: { ...adminRouteMeta, title: '订单管理', permissions: ['admin:order:view'] } },
       { path: 'after-sales', name: ROUTE_NAME.AdminAfterSales, component: () => import('@/views/admin/AfterSaleReviewView.vue'), meta: { ...adminRouteMeta, title: '售后审核', permissions: ['admin:after-sale:audit'] } },
-      { path: 'after-sale-appeals', name: ROUTE_NAME.AdminAfterSaleAppeals, component: () => import('@/views/admin/AfterSaleAppealManageView.vue'), meta: { ...adminRouteMeta, title: '售后申诉', permissions: ['admin:after-sale:audit'] } }
+      { path: 'after-sale-appeals', name: ROUTE_NAME.AdminAfterSaleAppeals, component: () => import('@/views/admin/AfterSaleAppealManageView.vue'), meta: { ...adminRouteMeta, title: '售后申诉', permissions: ['admin:after-sale:audit'] } },
+      { path: 'merchant-wallets', name: ROUTE_NAME.AdminMerchantWallets, component: () => import('@/views/admin/MerchantWalletManageView.vue'), meta: { ...adminRouteMeta, title: '商家钱包', permissions: ['admin:operation:read'] } }
     ]
   },
   {
@@ -346,6 +339,10 @@ router.beforeEach((to) => {
     const shopId = to.params.shopId
 
     if (typeof shopId !== 'string' || !merchantStore.ensureShop(shopId)) {
+      return { name: ROUTE_NAME.Forbidden }
+    }
+
+    if (to.meta.shopRole && merchantStore.currentShop?.roleCode !== to.meta.shopRole) {
       return { name: ROUTE_NAME.Forbidden }
     }
 

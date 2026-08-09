@@ -28,7 +28,20 @@ const hasShopAccess = (shop: ShopSummary) => shop.permissions.length > 0
 
 function enterShop(shop: ShopSummary) {
   merchantStore.setCurrentShop(shop.id)
-  router.push({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: shop.id } })
+  const routeName = shop.roleCode === 'SHOP_ADMIN'
+    ? ROUTE_NAME.MerchantDashboard
+    : shop.permissions.includes('shop:product:manage')
+      ? ROUTE_NAME.MerchantProductList
+      : shop.permissions.includes('shop:inventory:manage')
+        ? ROUTE_NAME.MerchantInventoryList
+        : shop.permissions.includes('shop:order:read')
+          ? ROUTE_NAME.MerchantOrderList
+          : shop.permissions.includes('shop:after-sale:manage')
+            ? ROUTE_NAME.MerchantAfterSaleList
+            : shop.permissions.includes('shop:wallet:read')
+              ? ROUTE_NAME.MerchantWallet
+              : ROUTE_NAME.MerchantMemberList
+  void router.push({ name: routeName, params: { shopId: shop.id } })
 }
 
 onMounted(() => {
@@ -43,7 +56,7 @@ onMounted(() => {
         <img class="brand-logo" :src="shiguangLogo" alt="时光商城" />
         <div>
           <h1 class="page-title">选择店铺</h1>
-          <p class="page-description">请选择本次要管理的店铺，系统会按店铺权限展示菜单和操作。</p>
+          <p class="page-description">请选择本次要管理的店铺，系统会按角色和权限展示菜单和操作。</p>
         </div>
       </div>
 
@@ -69,7 +82,7 @@ onMounted(() => {
           <p class="shop-permission">已开通 {{ shop.permissions.length }} 项店铺权限</p>
 
           <el-button v-if="hasShopAccess(shop)" class="enter-button" type="primary" plain @click="enterShop(shop)">
-            进入工作台
+            进入店铺
           </el-button>
           <el-alert v-else title="暂无店铺功能权限" type="info" :closable="false" show-icon />
         </el-card>

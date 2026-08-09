@@ -18,9 +18,23 @@ async function initMerchantEntry() {
     }
   }
 
-  const accessibleShop = authStore.manageableShops.find((shop) => shop.permissions.length > 0)
+  const accessibleShop = authStore.manageableShops.find((shop) => shop.roleCode === 'SHOP_ADMIN' && shop.permissions.length > 0)
+    ?? authStore.manageableShops.find((shop) => shop.permissions.length > 0)
   if (accessibleShop) {
-    await router.replace({ name: ROUTE_NAME.MerchantDashboard, params: { shopId: accessibleShop.id } })
+    const routeName = accessibleShop.roleCode === 'SHOP_ADMIN'
+      ? ROUTE_NAME.MerchantDashboard
+      : accessibleShop.permissions.includes('shop:product:manage')
+        ? ROUTE_NAME.MerchantProductList
+        : accessibleShop.permissions.includes('shop:inventory:manage')
+          ? ROUTE_NAME.MerchantInventoryList
+          : accessibleShop.permissions.includes('shop:order:read')
+            ? ROUTE_NAME.MerchantOrderList
+            : accessibleShop.permissions.includes('shop:after-sale:manage')
+              ? ROUTE_NAME.MerchantAfterSaleList
+              : accessibleShop.permissions.includes('shop:wallet:read')
+                ? ROUTE_NAME.MerchantWallet
+                : ROUTE_NAME.MerchantMemberList
+    await router.replace({ name: routeName, params: { shopId: accessibleShop.id } })
     return
   }
 

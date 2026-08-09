@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import AppPagination from '@/components/common/AppPagination.vue'
 import { createMerchantWithdrawal, getMerchantSettlements, getMerchantWallet, getMerchantWalletTransactions, getMerchantWithdrawals } from '@/api/merchant/wallet'
 import { SHOP_PERMISSION } from '@/constants/merchant'
 import { ApiRequestError } from '@/utils/request'

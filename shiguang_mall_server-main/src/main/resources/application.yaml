@@ -1,0 +1,77 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  config:
+    import: optional:file:.env[.properties],optional:file:.env.properties
+  application:
+    name: shiguang_market
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:10MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:12MB}
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE:0}
+      connect-timeout: 5s
+      timeout: 5s
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: 'NULL'
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+      insert-strategy: not_null
+      update-strategy: not_null
+      where-strategy: not_null
+      logic-delete-value: now()
+      logic-not-delete-value: 'null'
+
+sa-token:
+  token-name: satoken
+  timeout: 2592000
+  active-timeout: 604800
+  is-concurrent: true
+  is-share: false
+  token-style: uuid
+  is-read-header: true
+  is-read-body: false
+  is-read-cookie: false
+  is-log: false
+
+market:
+  internal-task-api-enabled: ${INTERNAL_TASK_API_ENABLED:false}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  trade:
+    payment-timeout-minutes: ${TRADE_PAYMENT_TIMEOUT_MINUTES:30}
+  idempotency:
+    ttl-hours: ${IDEMPOTENCY_TTL_HOURS:24}
+  content:
+    allow-local-http: ${CONTENT_ALLOW_LOCAL_HTTP:false}
+  storage:
+    enabled: ${MINIO_ENABLED:false}
+    endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+    access-key: ${MINIO_ACCESS_KEY:}
+    secret-key: ${MINIO_SECRET_KEY:}
+    bucket: ${MINIO_BUCKET:shiguang-market}
+    public-base-url: ${MINIO_PUBLIC_BASE_URL:http://127.0.0.1:9000}
+    object-prefix: ${MINIO_OBJECT_PREFIX:assets}
+    auto-create-bucket: ${MINIO_AUTO_CREATE_BUCKET:true}
+    public-read: ${MINIO_PUBLIC_READ:true}
+    max-file-size-bytes: ${MINIO_MAX_FILE_SIZE_BYTES:10485760}

@@ -80,6 +80,7 @@ function toCurrentUser(data: BackendCurrentUserView): CurrentUserView {
       name: item.shop.shopName,
       code: item.shop.shopNo,
       status: item.shop.status,
+      roleCode: item.roleCode as CurrentUserView['shops'][number]['roleCode'],
       permissions: toShopPermissions(item.permissions)
     }))
   }

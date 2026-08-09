@@ -32,14 +32,7 @@ const menuItems = computed(() => [
     label: '工作台',
     routeName: ROUTE_NAME.MerchantDashboard,
     icon: HomeFilled,
-    visible: merchantStore.hasAnyShopPermission([
-      SHOP_PERMISSION.ProductManage,
-      SHOP_PERMISSION.InventoryManage,
-      SHOP_PERMISSION.OrderRead,
-      SHOP_PERMISSION.AfterSaleManage,
-      SHOP_PERMISSION.WalletRead,
-      SHOP_PERMISSION.MemberManage
-    ])
+    visible: currentShop.value?.roleCode === 'SHOP_ADMIN'
   },
   {
     label: '商品管理',
