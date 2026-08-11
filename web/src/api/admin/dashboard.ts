@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 import type { PageView } from '@/types/common'
-import type { AfterSaleStatus, OrderStatus, PlatformOrder } from '@/types/admin'
+import type { OrderStatus, PlatformOrder } from '@/types/admin'
 
 interface OperationOrderView {
   id: string
@@ -11,16 +11,6 @@ interface OperationOrderView {
   orderStatus: OrderStatus
   paymentStatus: string
   itemSummary: Array<{ productName: string; skuName: string; quantity: number }>
-  createdAt: string
-}
-
-interface OperationAfterSaleView {
-  afterSaleNo: string
-  shopName: string
-  buyerName: string
-  amount: string
-  status: AfterSaleStatus
-  refundStatus: string
   createdAt: string
 }
 

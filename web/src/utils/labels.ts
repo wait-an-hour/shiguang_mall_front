@@ -1,6 +1,6 @@
-import type { AfterSaleStatus, CommonStatus, OrderStatus, ProductStatus, RoleCode } from '@/types/admin'
+import type { AdminRole, AfterSaleStatus, CommonStatus, OrderStatus, ProductStatus } from '@/types/admin'
 
-export const ADMIN_ROLE_LABEL: Record<RoleCode, string> = {
+export const ADMIN_ROLE_LABEL: Record<AdminRole, string> = {
   SUPER_ADMIN: '超级管理员',
   OPERATION_ADMIN: '运营管理员',
   AUDIT_ADMIN: '售后审核员',

@@ -63,7 +63,7 @@ export interface PermissionView {
   status: 'ACTIVE' | 'DISABLED'
 }
 
-export interface RoleDetailView extends RoleRecord {
+export interface RoleDetailView extends Omit<RoleRecord, 'permissions'> {
   status: 'ACTIVE' | 'DISABLED'
   permissions: PermissionView[]
   updatedAt?: string

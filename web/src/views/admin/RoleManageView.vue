@@ -4,7 +4,6 @@ import { ElMessage } from 'element-plus'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ConfirmActionButton from '@/components/common/ConfirmActionButton.vue'
 import { deleteRole, getRoleDetail, listPermissions, listRoles, saveRole } from '@/api/admin/rbac'
-import { getPermissionResourceZhLabel } from '@/utils/labels'
 import type { PermissionCode, RoleRecord } from '@/types/admin'
 
 interface PermissionTreeCheckInfo {

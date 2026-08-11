@@ -9,7 +9,7 @@ import StatusTag from '@/components/common/StatusTag.vue'
 import ConfirmActionButton from '@/components/common/ConfirmActionButton.vue'
 import { getPlatformShops } from '@/api/admin/shops'
 import { listRoles } from '@/api/admin/rbac'
-import { addShopMember, changeShopMemberRole, changeShopMemberStatus, listShopMembers } from '@/api/admin/shopMembers'
+import { addShopMember, changeShopMemberStatus, listShopMembers } from '@/api/admin/shopMembers'
 import type { RoleRecord, ShopMemberQuery, ShopMemberStatus, ShopMemberView } from '@/types/admin'
 
 

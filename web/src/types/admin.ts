@@ -52,7 +52,11 @@ export interface PlatformAccount extends PlatformUser {
 }
 
 export type ShopMemberStatus = 'ACTIVE' | 'DISABLED'
-export type ShopMemberRole = 'SHOP_ADMIN' | 'SHOP_MEMBER'
+export type ShopMemberRole =
+  | 'SHOP_ADMIN'
+  | 'SHOP_PRODUCT_OPERATOR'
+  | 'SHOP_ORDER_OPERATOR'
+  | 'SHOP_INVENTORY_OPERATOR'
 
 export interface ShopMemberView {
   id: Id
@@ -63,6 +67,7 @@ export interface ShopMemberView {
   status: ShopMemberStatus
   phone: string | null
   createdAt: Timestamp
+  updatedAt: Timestamp
 }
 
 export interface ShopMemberQuery {
@@ -76,7 +81,7 @@ export interface ShopMemberQuery {
 export interface RoleRecord {
   id: Id
   name: string
-  code: RoleCode
+  code: AdminRole
   description: string
   permissions: PermissionCode[]
   permissionIds?: Id[]
