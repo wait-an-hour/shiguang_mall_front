@@ -8,14 +8,15 @@ import AppPagination from '@/components/common/AppPagination.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import ConfirmActionButton from '@/components/common/ConfirmActionButton.vue'
-import { addShopMember, changeShopMemberRole, changeShopMemberStatus, listShopMembers } from '@/api/merchant/members'
+import { addShopMember, changeShopMemberRole, changeShopMemberStatus, listShopMemberRoles, listShopMembers } from '@/api/merchant/members'
+import type { MerchantMemberRoleOption } from '@/api/merchant/members'
 import type { MerchantMemberQuery, MerchantMemberRole, MerchantMemberStatus, MerchantMemberView } from '@/types/merchant'
 import type { Id } from '@/types/common'
 
 const route = useRoute()
 const shopId = computed(() => String(route.params.shopId))
 const rows = ref<MerchantMemberView[]>([])
-const roleOptions = ref<Array<{ id: Id; code: MerchantMemberRole; name: string }>>([])
+const roleOptions = ref<MerchantMemberRoleOption[]>([])
 const total = ref(0)
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -36,28 +37,8 @@ const roleLabels: Record<MerchantMemberRole, string> = {
   SHOP_INVENTORY_OPERATOR: '店铺库存人员'
 }
 
-function mergeRoleOptions(members: MerchantMemberView[]) {
-  const options = new Map(roleOptions.value.map((role) => [String(role.id), role]))
-  for (const member of members) {
-    if (!member.roleId) continue
-    options.set(String(member.roleId), {
-      id: member.roleId,
-      code: member.roleCode,
-      name: member.roleName || roleLabels[member.roleCode]
-    })
-  }
-  roleOptions.value = [...options.values()]
-}
-
 async function loadRoleOptions() {
-  const pageSize = 100
-  const firstPage = await listShopMembers(shopId.value, { page: 1, pageSize })
-  mergeRoleOptions(firstPage.items)
-  const pageCount = Math.ceil(firstPage.total / pageSize)
-  for (let page = 2; page <= pageCount; page += 1) {
-    const data = await listShopMembers(shopId.value, { page, pageSize })
-    mergeRoleOptions(data.items)
-  }
+  roleOptions.value = await listShopMemberRoles(shopId.value)
 }
 
 function statusLabel(status: MerchantMemberStatus) {
@@ -77,7 +58,6 @@ async function loadData() {
   try {
     const data = await listShopMembers(shopId.value, query)
     rows.value = data.items
-    mergeRoleOptions(data.items)
     total.value = data.total
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '成员数据加载失败')
@@ -185,7 +165,7 @@ onMounted(async () => {
         <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
             <div class="table-actions">
-              <el-button link type="primary" @click="updateRole(row)">切换角色</el-button>
+              <el-button link type="primary" @click="openRoleDialog(row)">切换角色</el-button>
               <ConfirmActionButton :text="row.status === 'ACTIVE' ? '停用' : '启用'" confirm-text="确认变更该成员状态？" @confirm="toggleStatus(row)" />
             </div>
           </template>

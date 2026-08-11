@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { getCategoryAttributes, getCategoryTree, type CategoryAttributeView, type CategoryNode } from '../../../api/product'
 import { createMerchantProduct, createMerchantSku, getMerchantProductDetail, updateMerchantProductContent, updateMerchantSku } from '../../../api/merchant/products'
+import { createInventoryInbound } from '../../../api/merchant/inventory'
 import { ApiRequestError } from '../../../utils/request'
 import { ROUTE_NAME } from '../../../constants/routes'
 import { SKU_STATUS_LABELS } from '../../../constants/merchant'
@@ -199,7 +200,23 @@ async function save() {
       router.push({ name: ROUTE_NAME.MerchantProductDetail, params: { shopId: shopId.value, spuId: detail.id } })
     } else {
       const detail = await createMerchantProduct(shopId.value, request)
-      ElMessage.success('商品已创建')
+      const stockBySkuName = new Map(form.skus.map((sku) => [sku.skuName.trim(), sku.stock]))
+      try {
+        for (const sku of detail.skus) {
+          const quantity = stockBySkuName.get(sku.skuName) ?? 0
+          if (quantity > 0) {
+            await createInventoryInbound(shopId.value, {
+              skuId: sku.id,
+              quantity,
+              businessNo: `PRODUCT_INIT_${detail.id}_${sku.id}`,
+              remark: '商品创建初始库存'
+            })
+          }
+        }
+        ElMessage.success('商品已创建')
+      } catch (error) {
+        ElMessage.warning(error instanceof Error ? `商品已创建，但初始库存入库失败：${error.message}` : '商品已创建，但初始库存入库失败')
+      }
       router.push({ name: ROUTE_NAME.MerchantProductDetail, params: { shopId: shopId.value, spuId: detail.id } })
     }
   } catch (error) {

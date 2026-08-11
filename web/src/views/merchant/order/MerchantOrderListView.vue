@@ -154,7 +154,14 @@ onMounted(loadOrders)
         <el-table-column prop="payableAmount" label="应付金额" width="110" />
         <el-table-column prop="refundAmount" label="退款金额" width="110" />
         <el-table-column prop="createdAt" label="创建时间" width="210" />
-        <el-table-column label="操作" fixed="right" width="150"><template #default="{ row }"><el-button text type="primary" @click="goDetail(row)">查看</el-button><el-button v-if="row.orderStatus === 'PENDING_SHIPMENT'" text type="success" @click="openShipDialog(row)">发货</el-button></template></el-table-column>
+        <el-table-column label="操作" fixed="right" width="150">
+          <template #default="{ row }">
+            <div class="order-actions">
+              <el-button text type="primary" @click="goDetail(row)">查看</el-button>
+              <el-button v-if="row.orderStatus === 'PENDING_SHIPMENT'" text type="success" @click="openShipDialog(row)">发货</el-button>
+            </div>
+          </template>
+        </el-table-column>
       </el-table>
       <el-empty v-if="!loading && pageData.items.length === 0" description="暂无订单记录" />
       <div class="pagination"><el-pagination v-model:current-page="filters.page" v-model:page-size="filters.pageSize" layout="total, sizes, prev, pager, next" :total="pageData.total" /></div>
@@ -182,5 +189,7 @@ onMounted(loadOrders)
 .meta { margin-top: 4px; color: #6b7280; font-size: 12px; }
 .item-line { color: #374151; line-height: 1.7; }
 .range-separator { margin: 0 8px; color: #9ca3af; }
+.order-actions { display: flex; align-items: center; justify-content: flex-start; min-height: 32px; gap: 4px; }
+.order-actions :deep(.el-button) { width: 48px; margin: 0; padding: 8px; }
 .pagination { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>

@@ -166,7 +166,7 @@ onMounted(loadProducts)
         <el-table-column prop="skuCount" label="SKU" width="80" />
         <el-table-column prop="totalAvailableStock" label="可用库存" width="110" />
         <el-table-column prop="updatedAt" label="更新时间" width="210" />
-        <el-table-column label="操作" fixed="right" width="260">
+        <el-table-column class-name="product-operation-column" label="操作" fixed="right" width="300">
           <template #default="{ row }">
             <el-button text type="primary" @click="goDetail(row)">查看</el-button>
             <el-button text type="primary" @click="goEdit(row)">编辑</el-button>
@@ -195,5 +195,9 @@ onMounted(loadProducts)
 .cover-placeholder { display: grid; place-items: center; color: #9ca3af; font-size: 12px; text-align: center; }
 .name { color: #111827; font-weight: 600; }
 .meta { margin-top: 4px; color: #6b7280; font-size: 12px; }
+.product-actions { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; min-height: 32px; white-space: nowrap; }
+:deep(.product-operation-column .cell) { display: flex; flex-wrap: nowrap; align-items: center; white-space: nowrap; }
+:deep(.product-operation-column .el-button) { margin-left: 4px; }
+:deep(.product-operation-column .el-button:first-child) { margin-left: 0; }
 .pagination { display: flex; justify-content: flex-end; margin-top: 16px; }
 </style>

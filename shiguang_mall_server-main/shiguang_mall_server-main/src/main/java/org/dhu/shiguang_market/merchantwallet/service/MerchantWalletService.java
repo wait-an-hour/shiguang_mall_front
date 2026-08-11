@@ -80,9 +80,10 @@ public class MerchantWalletService {
         this.shopAccess = shopAccess; this.idempotency = idempotency; this.numbers = numbers; this.userMapper = userMapper;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public MerchantWalletView wallet(long shopId) {
         shopAccess.require(shopId, "shop:wallet:read");
+        walletMapper.ensureByShopId(shopId);
         MerchantWalletAccount wallet = walletMapper.selectOne(new LambdaQueryWrapper<MerchantWalletAccount>().eq(MerchantWalletAccount::getShopId, shopId));
         if (wallet == null) throw BusinessException.notFound("RESOURCE_NOT_FOUND", "钱包不存在");
         return walletView(wallet);
@@ -130,13 +131,15 @@ public class MerchantWalletService {
                                                                  String businessNo, LocalDateTime createdFrom,
                                                                  LocalDateTime createdTo, long page, long pageSize) {
         shopAccess.require(shopId, "shop:wallet:read"); validatePage(page, pageSize);
+        String normalizedBusinessType = Formatters.trimToNull(businessType);
+        String normalizedBusinessNo = Formatters.trimToNull(businessNo);
         Page<MerchantWalletTransaction> result = transactionMapper.selectPage(Page.of(page, pageSize),
                 new LambdaQueryWrapper<MerchantWalletTransaction>().eq(MerchantWalletTransaction::getShopId, shopId)
                         .eq(type != null, MerchantWalletTransaction::getTransactionType, type)
                         .and(bucket != null, q -> q.eq(MerchantWalletTransaction::getTargetBucket, bucket)
                                 .or().eq(MerchantWalletTransaction::getSourceBucket, bucket))
-                        .eq(businessType != null && !businessType.isBlank(), MerchantWalletTransaction::getBusinessType, businessType.trim())
-                        .eq(businessNo != null && !businessNo.isBlank(), MerchantWalletTransaction::getBusinessNo, businessNo.trim())
+                        .eq(normalizedBusinessType != null, MerchantWalletTransaction::getBusinessType, normalizedBusinessType)
+                        .eq(normalizedBusinessNo != null, MerchantWalletTransaction::getBusinessNo, normalizedBusinessNo)
                         .ge(createdFrom != null, MerchantWalletTransaction::getCreatedAt, createdFrom)
                         .lt(createdTo != null, MerchantWalletTransaction::getCreatedAt, createdTo)
                         .orderByDesc(MerchantWalletTransaction::getCreatedAt).orderByDesc(MerchantWalletTransaction::getId));
@@ -182,6 +185,7 @@ public class MerchantWalletService {
             throw BusinessException.unprocessable("WITHDRAWAL_DESTINATION_INVALID", "仅支持虚拟账户");
         }
         String destination = requireText(request.destinationAccount(), 128);
+        walletMapper.ensureByShopId(shopId);
         MerchantWalletAccount wallet = walletMapper.selectByShopIdForUpdate(shopId);
         if (wallet == null) throw BusinessException.notFound("RESOURCE_NOT_FOUND", "钱包不存在");
         if (wallet.getStatus() != MerchantWalletStatus.ACTIVE) throw BusinessException.conflict("MERCHANT_WALLET_FROZEN", "钱包不可用");

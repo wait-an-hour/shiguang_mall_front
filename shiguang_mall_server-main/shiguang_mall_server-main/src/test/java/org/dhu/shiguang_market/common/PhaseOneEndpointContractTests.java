@@ -16,6 +16,7 @@ import org.dhu.shiguang_market.order.controller.TradeController;
 import org.dhu.shiguang_market.payment.controller.PaymentController;
 import org.dhu.shiguang_market.payment.controller.WalletController;
 import org.dhu.shiguang_market.product.controller.PlatformCatalogController;
+import org.dhu.shiguang_market.product.controller.PlatformProductController;
 import org.dhu.shiguang_market.product.controller.ProductReviewController;
 import org.dhu.shiguang_market.product.controller.PublicCatalogController;
 import org.dhu.shiguang_market.product.controller.ShopProductController;
@@ -34,7 +35,7 @@ class PhaseOneEndpointContractTests {
             CartController.class, TradeController.class, WalletController.class,
             PaymentController.class, OrderController.class, ShopProductController.class,
             InventoryController.class, PlatformShopController.class,
-            PlatformCatalogController.class, ProductReviewController.class);
+            PlatformCatalogController.class, ProductReviewController.class, PlatformProductController.class);
 
     @Test
     void exposesEveryPhaseOneEndpoint() {
@@ -69,6 +70,11 @@ class PhaseOneEndpointContractTests {
                 "POST /api/shops/{shopId}/orders/{orderId}/ship",
                 "GET /api/platform/shops", "POST /api/platform/shops", "GET /api/platform/shops/{shopId}",
                 "PUT /api/platform/shops/{shopId}", "POST /api/platform/shops/{shopId}/status",
+                "GET /api/platform/shops/{shopId}/members",
+                "POST /api/platform/shops/{shopId}/members",
+                "PUT /api/platform/shops/{shopId}/members/{userId}/role",
+                "POST /api/platform/shops/{shopId}/members/{userId}/status",
+                "DELETE /api/platform/shops/{shopId}/members/{userId}",
                 "GET /api/platform/catalog/categories/tree", "POST /api/platform/catalog/categories",
                 "PUT /api/platform/catalog/categories/{categoryId}",
                 "POST /api/platform/catalog/categories/{categoryId}/status",
@@ -81,7 +87,9 @@ class PhaseOneEndpointContractTests {
                 "POST /api/platform/catalog/brands/{brandId}/status",
                 "GET /api/platform/products/reviews", "GET /api/platform/products/reviews/{spuId}",
                 "POST /api/platform/products/reviews/{spuId}/approve",
-                "POST /api/platform/products/reviews/{spuId}/reject");
+                "POST /api/platform/products/reviews/{spuId}/reject",
+                "GET /api/platform/products", "GET /api/platform/products/{spuId}",
+                "GET /api/platform/products/{spuId}/history");
     }
 
     private static List<String> endpoints(Class<?> controller) {

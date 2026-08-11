@@ -168,15 +168,11 @@ onMounted(loadInventory)
         <el-table-column prop="lockedStock" label="锁定库存" width="110" />
         <el-table-column prop="safetyStock" label="安全库存" width="110" />
         <el-table-column prop="version" label="版本" width="80" />
-        <el-table-column label="操作" fixed="right" width="230">
+        <el-table-column class-name="inventory-operation-column" label="操作" fixed="right" width="200">
           <template #default="{ row }">
-            <div class="operation-group">
-              <el-button-group>
-                <el-button size="small" type="primary" plain @click="goDetail(row)">详情</el-button>
-                <el-button size="small" type="success" plain @click="openDialog(row, 'inbound')">入库</el-button>
-                <el-button size="small" type="warning" plain @click="openDialog(row, 'adjustment')">调整</el-button>
-              </el-button-group>
-            </div>
+            <el-button text type="primary" @click="goDetail(row)">详情</el-button>
+            <el-button text type="success" @click="openDialog(row, 'inbound')">入库</el-button>
+            <el-button text type="warning" @click="openDialog(row, 'adjustment')">调整</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -210,7 +206,8 @@ onMounted(loadInventory)
 .name { color: #111827; font-weight: 600; }
 .meta { margin-top: 4px; color: #6b7280; font-size: 12px; }
 .pagination { display: flex; justify-content: flex-end; margin-top: 16px; }
-.operation-group { display: flex; justify-content: center; }
-.operation-group :deep(.el-button) { min-width: 58px; }
+:deep(.inventory-operation-column .cell) { display: flex; flex-wrap: nowrap; align-items: center; white-space: nowrap; }
+:deep(.inventory-operation-column .el-button) { margin-left: 4px; }
+:deep(.inventory-operation-column .el-button:first-child) { margin-left: 0; }
 .form-tip { margin-top: 4px; color: #94a3b8; font-size: 12px; line-height: 1.4; }
 </style>

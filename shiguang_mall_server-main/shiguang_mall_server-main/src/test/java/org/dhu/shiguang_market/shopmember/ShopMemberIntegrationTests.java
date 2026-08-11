@@ -17,6 +17,7 @@ import org.dhu.shiguang_market.identity.mapper.SysUserMapper;
 import org.dhu.shiguang_market.identity.model.SysRole;
 import org.dhu.shiguang_market.identity.model.SysUser;
 import org.dhu.shiguang_market.shop.controller.ShopMemberController;
+import org.dhu.shiguang_market.shop.controller.PlatformShopController;
 import org.dhu.shiguang_market.shop.dto.ShopMemberDtos.AddShopMemberRequest;
 import org.dhu.shiguang_market.shop.dto.ShopMemberDtos.ChangeShopMemberRoleRequest;
 import org.dhu.shiguang_market.shop.dto.ShopMemberDtos.StatusRequest;
@@ -42,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class ShopMemberIntegrationTests {
     @Autowired private ShopMemberController controller;
+    @Autowired private PlatformShopController platformController;
     @Autowired private ShopMapper shopMapper;
     @Autowired private ShopUserMapper shopUserMapper;
     @Autowired private SysUserMapper userMapper;
@@ -79,6 +81,40 @@ class ShopMemberIntegrationTests {
         assertThat(result.items()).hasSize(1);
         assertThat(result.items().getFirst().user().username()).isEqualTo(target.getUsername());
         assertThat(result.items().getFirst().role().roleCode()).isEqualTo("SHOP_ADMIN");
+    }
+
+    /** 可分配角色只包含匹配关键词的 ACTIVE 店铺角色，并按角色代码稳定排序。 */
+    @Test
+    void assignableRoleListFiltersScopeStatusAndKeyword() {
+        String marker = "角色查询" + suffix();
+        SysRole first = insertRole("SHOP_A_" + suffix(), marker, ScopeType.SHOP, ActiveStatus.ACTIVE);
+        SysRole second = insertRole("SHOP_Z_" + suffix(), marker, ScopeType.SHOP, ActiveStatus.ACTIVE);
+        insertRole("SHOP_DISABLED_" + suffix(), marker, ScopeType.SHOP, ActiveStatus.DISABLED);
+        insertRole("PLATFORM_" + suffix(), marker, ScopeType.PLATFORM, ActiveStatus.ACTIVE);
+
+        var result = controller.roles(shop.getId(), "  " + marker + "  ", 1, 20).data();
+
+        assertThat(result.items()).extracting(view -> view.roleCode())
+                .containsExactly(first.getRoleCode(), second.getRoleCode());
+        assertThat(result.items()).allSatisfy(view -> {
+            assertThat(view.scopeType()).isEqualTo(ScopeType.SHOP);
+            assertThat(view.status()).isEqualTo(ActiveStatus.ACTIVE);
+        });
+        assertThat(result.total()).isEqualTo(2);
+    }
+
+    /** 其他店铺角色即使是有效成员，也不能读取成员管理角色字典。 */
+    @Test
+    void assignableRoleListRequiresMemberManagePermission() {
+        SysUser operator = insertUser("role_reader");
+        insertMember(operator.getId(), shopRole("SHOP_PRODUCT_OPERATOR").getId());
+        when(currentUser.id()).thenReturn(operator.getId());
+
+        assertThatThrownBy(() -> controller.roles(shop.getId(), null, 1, 20))
+                .isInstanceOfSatisfying(BusinessException.class, exception -> {
+                    assertThat(exception.getStatus().value()).isEqualTo(404);
+                    assertThat(exception.getCode()).isEqualTo("RESOURCE_NOT_FOUND");
+                });
     }
 
     /** 新增成员应按用户名找到 ACTIVE 用户，并写入一个有效的 SHOP 角色。 */
@@ -128,6 +164,37 @@ class ShopMemberIntegrationTests {
                                 .isEqualTo("CANNOT_DISABLE_SELF_WITHOUT_OTHER_ADMIN"));
     }
 
+    @Test
+    void platformCrudManagesMemberWithoutShopMembership() {
+        SysUser platformCaller = insertUser("platform_caller");
+        when(currentUser.id()).thenReturn(platformCaller.getId());
+        SysUser target = insertUser("platform_target");
+        SysRole productRole = shopRole("SHOP_PRODUCT_OPERATOR");
+
+        when(currentUser.id()).thenReturn(platformCaller.getId());
+        var created = platformController.addMember(shop.getId(),
+                new AddShopMemberRequest(target.getUsername(), productRole.getId().toString()))
+                .getBody().data();
+        assertThat(created.user().username()).isEqualTo(target.getUsername());
+
+        var listed = platformController.members(shop.getId(), target.getUsername(), null,
+                ActiveStatus.ACTIVE, 1, 20).data();
+        assertThat(listed.items()).hasSize(1);
+
+        SysRole orderRole = shopRole("SHOP_ORDER_OPERATOR");
+        var changedRole = platformController.changeMemberRole(shop.getId(), target.getId(),
+                new ChangeShopMemberRoleRequest(orderRole.getId().toString())).data();
+        assertThat(changedRole.role().roleCode()).isEqualTo("SHOP_ORDER_OPERATOR");
+
+        var disabled = platformController.changeMemberStatus(shop.getId(), target.getId(),
+                new StatusRequest(ActiveStatus.DISABLED)).data();
+        assertThat(disabled.status()).isEqualTo(ActiveStatus.DISABLED);
+
+        platformController.removeMember(shop.getId(), target.getId());
+        assertThat(shopUserMapper.selectMemberForUpdate(shop.getId(), target.getId())).isNull();
+        assertThat(userMapper.selectById(target.getId())).isNotNull();
+    }
+
     private Shop insertShop() {
         Shop value = new Shop();
         value.setShopNo("SHOP-IT-" + suffix());
@@ -164,6 +231,18 @@ class ShopMemberIntegrationTests {
                 .eq(SysRole::getScopeType, ScopeType.SHOP)
                 .eq(SysRole::getStatus, ActiveStatus.ACTIVE));
         assertThat(role).as("schema.sql 应初始化 " + roleCode + " 角色").isNotNull();
+        return role;
+    }
+
+    private SysRole insertRole(String roleCode, String roleName, ScopeType scopeType,
+                               ActiveStatus status) {
+        SysRole role = new SysRole();
+        role.setRoleCode(roleCode);
+        role.setRoleName(roleName);
+        role.setScopeType(scopeType);
+        role.setDescription("店铺成员角色查询集成测试");
+        role.setStatus(status);
+        assertThat(roleMapper.insert(role)).isOne();
         return role;
     }
 
