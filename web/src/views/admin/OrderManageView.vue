@@ -24,8 +24,17 @@ function statusType(status: OrderStatus) {
 }
 
 function formatTime(value?: string | null) {
-  // 后端时间统一是 ISO 8601 字符串；详情弹窗集中格式化，避免模板里重复写空值判断。
   return value ? value.replace('T', ' ').replace(/\.\d{3}.*/, '') : '-'
+}
+
+function paymentStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    UNPAID: '待支付',
+    PAID: '已支付',
+    PARTIALLY_REFUNDED: '部分退款',
+    REFUNDED: '已退款'
+  }
+  return labels[status] ?? status
 }
 
 async function loadData() {
@@ -103,9 +112,13 @@ onMounted(loadData)
             <el-descriptions-item label="商家">{{ detail.shopName }}</el-descriptions-item>
             <el-descriptions-item label="买家">{{ detail.buyerName }}</el-descriptions-item>
             <el-descriptions-item label="订单金额">{{ formatMoney(detail.amount) }}</el-descriptions-item>
+            <el-descriptions-item label="退款金额">{{ formatMoney(detail.refundAmount) }}</el-descriptions-item>
             <el-descriptions-item label="订单状态">
               <StatusTag :label="getOrderStatusLabel(detail.status)" :type="statusType(detail.status)" />
             </el-descriptions-item>
+            <el-descriptions-item label="支付状态">{{ paymentStatusLabel(detail.paymentStatus) }}</el-descriptions-item>
+            <el-descriptions-item label="商品种类">{{ detail.itemKinds }}</el-descriptions-item>
+            <el-descriptions-item label="商品总数">{{ detail.totalQuantity }}</el-descriptions-item>
           </el-descriptions>
         </section>
 
@@ -113,12 +126,6 @@ onMounted(loadData)
           <div class="section-title">时间信息</div>
           <el-descriptions :column="2" border>
             <el-descriptions-item label="下单时间">{{ formatTime(detail.createdAt) }}</el-descriptions-item>
-            <el-descriptions-item label="支付时间">{{ formatTime(detail.paidAt) }}</el-descriptions-item>
-            <el-descriptions-item label="发货时间">{{ formatTime(detail.shippedAt) }}</el-descriptions-item>
-            <el-descriptions-item label="收货时间">{{ formatTime(detail.receivedAt) }}</el-descriptions-item>
-            <el-descriptions-item label="完成时间">{{ formatTime(detail.completedAt) }}</el-descriptions-item>
-            <el-descriptions-item label="物流公司">{{ detail.carrierName || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="运单号">{{ detail.trackingNo || '-' }}</el-descriptions-item>
           </el-descriptions>
         </section>
 
@@ -143,12 +150,7 @@ onMounted(loadData)
             <el-table-column label="数量" width="90">
               <template #default="{ row }">x{{ row.quantity }}</template>
             </el-table-column>
-            <el-table-column label="单价" width="120">
-              <template #default="{ row }">{{ row.unitPrice ? formatMoney(row.unitPrice) : '-' }}</template>
-            </el-table-column>
-            <el-table-column label="实付" width="120">
-              <template #default="{ row }">{{ row.payableAmount ? formatMoney(row.payableAmount) : '-' }}</template>
-            </el-table-column>
+
           </el-table>
         </section>
       </template>

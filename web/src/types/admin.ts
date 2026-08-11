@@ -164,9 +164,14 @@ export interface PlatformOrder {
   shopName: string
   buyerName: string
   amount: Money
+  refundAmount: Money
   status: OrderStatus
+  paymentStatus: string
   products: string[]
   orderItems: PlatformOrderItem[]
+  itemKinds: number
+  totalQuantity: number
+  availableActions: string[]
   createdAt: Timestamp
   paidAt?: Timestamp | null
   shippedAt?: Timestamp | null

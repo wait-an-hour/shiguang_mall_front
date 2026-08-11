@@ -12,10 +12,12 @@ interface PlatformCategoryNode {
   children?: PlatformCategoryNode[]
 }
 
+export type CategoryAttributeValueType = 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'OPTION'
+
 export interface CategoryAttributeView {
   id: Id
   attributeName: string
-  valueType: 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'ENUM'
+  valueType: CategoryAttributeValueType
   unit?: string | null
   required: boolean
   filterable: boolean
@@ -26,11 +28,11 @@ export interface CategoryAttributeView {
 
 export interface CategoryAttributeRequest {
   attributeName: string
-  valueType: 'TEXT' | 'NUMBER' | 'BOOLEAN' | 'ENUM'
+  valueType: CategoryAttributeValueType
   unit?: string
   required: boolean
   filterable: boolean
-  options: string[]
+  options?: string[]
   sortOrder: number
 }
 
@@ -99,11 +101,10 @@ export async function listCategories() {
 
 export async function saveCategory(record: CategoryRecord) {
   const payload = toCategoryPayload(record)
-  if (record.id) {
-    await request.put(`/platform/catalog/categories/${record.id}`, payload)
-  } else {
-    await request.post('/platform/catalog/categories', payload)
-  }
+  const data = record.id
+    ? await request.put<PlatformCategoryNode>(`/platform/catalog/categories/${record.id}`, payload) as unknown as PlatformCategoryNode
+    : await request.post<PlatformCategoryNode>('/platform/catalog/categories', payload) as unknown as PlatformCategoryNode
+  return toCategoryRecord(data)
 }
 
 export function setCategoryStatus(id: Id, status: CommonStatus) {
