@@ -7,9 +7,11 @@ import StatusTag from '@/components/common/StatusTag.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { approveProductReview, getProductDetail, listProducts, rejectProductReview, setProductStatus } from '@/api/admin/products'
+import { listCategories } from '@/api/admin/catalog'
+import { getPlatformShops, type PlatformShopView } from '@/api/admin/shops'
 import { useAdminFiltersStore } from '@/stores/adminFilters'
 import { formatMoney, getProductStatusLabel } from '@/utils/labels'
-import type { PlatformProduct, ProductStatus } from '@/types/admin'
+import type { CategoryRecord, PlatformProduct, ProductStatus } from '@/types/admin'
 
 const key = 'products'
 const filterStore = useAdminFiltersStore()
@@ -18,8 +20,15 @@ const loading = ref(false)
 const detailLoading = ref(false)
 const total = ref(0)
 const rows = ref<PlatformProduct[]>([])
+const shopOptions = ref<PlatformShopView[]>([])
+const categoryOptions = ref<CategoryRecord[]>([])
+const filterOptionsLoading = ref(false)
 const detailVisible = ref(false)
 const detail = ref<PlatformProduct>()
+
+function flattenCategories(categories: CategoryRecord[]): CategoryRecord[] {
+  return categories.flatMap((category) => [category, ...flattenCategories(category.children ?? [])])
+}
 
 function statusType(status: ProductStatus) {
   return status === 'ON_SHELF' ? 'success' : status === 'REJECTED' ? 'danger' : status === 'PENDING_REVIEW' ? 'warning' : 'info'
@@ -43,6 +52,24 @@ async function loadData() {
   } finally {
     loading.value = false
   }
+}
+
+async function loadFilterOptions() {
+  filterOptionsLoading.value = true
+  const [shopsResult, categoriesResult] = await Promise.allSettled([
+    getPlatformShops({ page: 1, pageSize: 100 }),
+    listCategories()
+  ])
+  if (shopsResult.status === 'fulfilled') shopOptions.value = shopsResult.value.items
+  else ElMessage.error('商家选项加载失败')
+  if (categoriesResult.status === 'fulfilled') categoryOptions.value = flattenCategories(categoriesResult.value)
+  else ElMessage.error('分类选项加载失败')
+  filterOptionsLoading.value = false
+}
+
+function search() {
+  query.page = 1
+  void loadData()
 }
 
 async function openDetail(row: PlatformProduct) {
@@ -106,7 +133,10 @@ async function govern(row: PlatformProduct, status: Exclude<ProductStatus, 'DRAF
   }
 }
 
-onMounted(loadData)
+onMounted(() => {
+  void loadData()
+  void loadFilterOptions()
+})
 </script>
 
 <template>
@@ -116,7 +146,17 @@ onMounted(loadData)
     <SearchPanel>
       <el-form>
         <el-form-item label="关键词">
-          <el-input v-model="query.keyword" placeholder="商品/商家/分类" clearable />
+          <el-input v-model="query.keyword" placeholder="商品名称/SPU 编号" clearable />
+        </el-form-item>
+        <el-form-item label="商家">
+          <el-select v-model="query.shopId" filterable clearable :loading="filterOptionsLoading" placeholder="请选择商家">
+            <el-option v-for="shop in shopOptions" :key="shop.shop.id" :label="`${shop.shop.shopName}（${shop.shop.shopNo}）`" :value="shop.shop.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="分类">
+          <el-select v-model="query.categoryId" filterable clearable :loading="filterOptionsLoading" placeholder="请选择分类">
+            <el-option v-for="category in categoryOptions" :key="category.id" :label="category.name" :value="category.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="query.status" clearable>
@@ -126,7 +166,7 @@ onMounted(loadData)
             <el-option label="已驳回" value="REJECTED" />
           </el-select>
         </el-form-item>
-        <el-button type="primary" @click="loadData">查询</el-button>
+        <el-button type="primary" @click="search">查询</el-button>
       </el-form>
     </SearchPanel>
 

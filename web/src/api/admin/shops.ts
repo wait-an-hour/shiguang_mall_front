@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { Id, Money, PageView, Timestamp } from '@/types/common'
+import type { Id, PageView, Timestamp } from '@/types/common'
 import type { ShopStatus } from '@/types/merchant'
 
 export interface PlatformShopView {
@@ -19,34 +19,42 @@ export interface PlatformShopView {
   updatedAt: Timestamp
 }
 
+export type PlatformShopSort = 'createdAt,desc' | 'updatedAt,desc' | 'shopName,asc' | 'status,asc'
+
 export interface PlatformShopQuery {
   status?: ShopStatus | ''
   keyword?: string
   page?: number
   pageSize?: number
-  sort?: string
+  sort?: PlatformShopSort
 }
 
 export interface CreateShopRequest {
   shopName: string
-  logoUrl?: string
-  description?: string
-  contactName?: string
-  contactPhone?: string
+  logoUrl?: string | null
+  description?: string | null
+  contactName?: string | null
+  contactPhone?: string | null
   adminUsername: string
 }
 
 export interface UpdateShopRequest {
   shopName: string
-  logoUrl?: string
-  description?: string
-  contactName?: string
-  contactPhone?: string
+  logoUrl: string | null
+  description: string | null
+  contactName: string | null
+  contactPhone: string | null
 }
 
 export function getPlatformShops(params: PlatformShopQuery = {}) {
   return request.get<PageView<PlatformShopView>>('/platform/shops', {
-    params: { ...params, status: params.status || undefined }
+    params: {
+      status: params.status || undefined,
+      keyword: params.keyword?.trim() || undefined,
+      page: params.page,
+      pageSize: params.pageSize,
+      sort: params.sort
+    }
   }) as unknown as Promise<PageView<PlatformShopView>>
 }
 
@@ -66,4 +74,3 @@ export function setPlatformShopStatus(shopId: Id, targetStatus: ShopStatus, reas
   return request.post<PlatformShopView>(`/platform/shops/${shopId}/status`, { targetStatus, reason }) as unknown as Promise<PlatformShopView>
 }
 
-export type { Money }

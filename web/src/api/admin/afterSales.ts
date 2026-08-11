@@ -1,15 +1,14 @@
 import request from '@/utils/request'
 import type { Id, PageView } from '@/types/common'
-import type { AfterSaleStatus, PlatformAfterSale } from '@/types/admin'
+import type { AfterSaleStatus } from '@/types/admin'
 import type { AfterSaleType, RefundStatus } from '@/types/merchant'
 
 export interface PlatformAfterSaleQuery {
-  status?: string
-  refundStatus?: string
-  requestType?: string
-  keyword?: string
-  createdFrom?: string
-  createdTo?: string
+  afterSaleNo?: string
+  shopId?: Id
+  userId?: Id
+  status?: AfterSaleStatus | ''
+  refundStatus?: RefundStatus | ''
   page?: number
   pageSize?: number
 }
@@ -21,41 +20,25 @@ export interface OperationAfterSaleView {
   status: AfterSaleStatus
   refundStatus: RefundStatus
   order: { orderNo: string }
-  shop: { shopName: string }
-  item: { productName: string; skuName: string }
+  shop: { id: Id; shopNo: string; shopName: string }
+  item: { productName: string; skuName: string } | null
   quantity: number
   requestedAmount: string
   approvedAmount: string
-  reasonCode: string
-  reasonDescription: string
   createdAt: string
   updatedAt: string
-  buyer: { nickname?: string; username?: string }
+  buyer: { id: Id; nickname?: string; username?: string }
 }
 
-function toPlatform(item: OperationAfterSaleView): PlatformAfterSale {
-  return {
-    id: item.id,
-    serviceNo: item.afterSaleNo,
-    orderNo: item.order.orderNo,
-    shopName: item.shop.shopName,
-    buyerName: item.buyer.nickname || item.buyer.username || '-',
-    requestedAmount: item.requestedAmount,
-    reason: item.reasonDescription ? `${item.reasonCode}：${item.reasonDescription}` : item.reasonCode,
-    status: item.status,
-    auditRemark: '',
-    createdAt: item.createdAt
+export function listAfterSales(query: PlatformAfterSaleQuery = {}) {
+  const params = {
+    afterSaleNo: query.afterSaleNo?.trim() || undefined,
+    shopId: query.shopId || undefined,
+    userId: query.userId || undefined,
+    status: query.status || undefined,
+    refundStatus: query.refundStatus || undefined,
+    page: query.page,
+    pageSize: query.pageSize
   }
-}
-
-export async function listAfterSales(query: PlatformAfterSaleQuery = {}) {
-  const data = await request.get<PageView<OperationAfterSaleView>>('/platform/operations/after-sales', { params: query }) as unknown as PageView<OperationAfterSaleView>
-  return {
-    ...data,
-    items: data.items.map(toPlatform)
-  }
-}
-
-export function auditAfterSale() {
-  throw new Error('平台售后单不支持直接审核，请使用售后申诉裁决')
+  return request.get<PageView<OperationAfterSaleView>>('/platform/operations/after-sales', { params }) as unknown as Promise<PageView<OperationAfterSaleView>>
 }

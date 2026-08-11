@@ -21,6 +21,9 @@ const skuDialogVisible = ref(false)
 const product = ref<ShopProductDetailView | null>(null)
 const shopId = computed(() => String(route.params.shopId))
 const spuId = computed(() => String(route.params.spuId))
+const minSalePriceText = computed(() => product.value?.minSalePrice
+  ? `¥${Number(product.value.minSalePrice).toFixed(2)}`
+  : '-')
 const skuForm = reactive({ id: '', salePrice: '', marketPrice: '', barcode: '', status: 'ENABLED' as EnabledStatus, version: 1 })
 
 function getSkuStatusLabel(status: EnabledStatus) {
@@ -113,6 +116,7 @@ onMounted(loadDetail)
           <div>
             <div class="summary-title">{{ product.productName }}</div>
             <div class="summary-meta">{{ product.spuNo }} · {{ product.category.name }} · 内容版本 {{ product.contentVersion }}</div>
+            <div class="summary-meta">最低售价：{{ minSalePriceText }}</div>
             <p class="summary-desc">{{ product.subtitle }}</p>
           </div>
           <el-tag :type="PRODUCT_STATUS_TAG_TYPES[product.status]" effect="light">{{ PRODUCT_STATUS_LABELS[product.status] }}</el-tag>

@@ -20,14 +20,30 @@ export interface MerchantOrderQuery {
 
 function toParams(query: MerchantOrderQuery) {
   return {
-    ...query,
+    page: query.page,
+    pageSize: query.pageSize,
     orderStatus: query.orderStatus || undefined,
-    paymentStatus: query.paymentStatus || undefined
+    paymentStatus: query.paymentStatus || undefined,
+    keyword: query.keyword?.trim() || undefined,
+    createdFrom: query.createdFrom || undefined,
+    createdTo: query.createdTo || undefined
   }
 }
 
 export function getMerchantOrders(shopId: Id, query: MerchantOrderQuery = {}) {
   return request.get<PageView<ShopOrderSummaryView>>(`/shops/${shopId}/orders`, { params: toParams(query) }) as unknown as Promise<PageView<ShopOrderSummaryView>>
+}
+
+export async function getAllMerchantOrders(shopId: Id, query: Omit<MerchantOrderQuery, 'page' | 'pageSize' | 'keyword'> = {}) {
+  const firstPage = await getMerchantOrders(shopId, { ...query, page: 1, pageSize: 100 })
+  if (firstPage.totalPages <= 1) return firstPage.items
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+      getMerchantOrders(shopId, { ...query, page: index + 2, pageSize: 100 })
+    )
+  )
+  return [firstPage, ...remainingPages].flatMap((page) => page.items)
 }
 
 export function getMerchantOrderDetail(shopId: Id, orderId: Id) {

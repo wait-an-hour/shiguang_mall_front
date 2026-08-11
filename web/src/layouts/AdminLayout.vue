@@ -28,14 +28,14 @@ const menus = computed<AdminMenuItem[]>(() => [
   { title: '首页概览', path: homePath.value, permissions: ['admin:dashboard:view', 'admin:product:view', 'admin:shop:manage'] },
   { title: '角色管理', path: '/admin/rbac/roles', permissions: ['admin:rbac:role'] },
   { title: '平台账号', path: '/admin/rbac/accounts', permissions: ['admin:rbac:account'] },
-  { title: '店铺成员', path: '/admin/shops/members', permissions: ['admin:shop:manage'] },
+  { title: '店铺成员', path: '/admin/shops/members', permissions: ['admin:shop:member:manage'] },
   { title: '分类管理', path: '/admin/catalog/categories', permissions: ['admin:catalog:category'] },
   { title: '品牌管理', path: '/admin/catalog/brands', permissions: ['admin:catalog:brand'] },
   { title: '店铺管理', path: '/admin/shops', permissions: ['admin:shop:manage'] },
   { title: '商品管理', path: '/admin/products', permissions: ['admin:product:view'] },
   { title: '订单管理', path: '/admin/orders', permissions: ['admin:order:view'] },
-  { title: '售后审核', path: '/admin/after-sales', permissions: ['admin:after-sale:audit'] },
-  { title: '售后申诉', path: '/admin/after-sale-appeals', permissions: ['admin:after-sale:audit'] },
+  { title: '售后查询', path: '/admin/after-sales', permissions: ['admin:operation:read'] },
+  { title: '售后审核', path: '/admin/after-sale-appeals', permissions: ['admin:after-sale:audit'] },
   { title: '商家钱包', path: '/admin/merchant-wallets', permissions: ['admin:operation:read'] }
 ])
 

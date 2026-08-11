@@ -119,7 +119,15 @@ function toPlatformProductDetail(item: PlatformProductDetailView): PlatformProdu
 }
 
 export async function listProducts(query: ListQuery) {
-  const data = await request.get<PageView<PlatformProductSummaryView>>('/platform/products', { params: query }) as unknown as PageView<PlatformProductSummaryView>
+  const data = await request.get<PageView<PlatformProductSummaryView>>('/platform/products', {
+    params: {
+      ...query,
+      shopId: query.shopId || undefined,
+      categoryId: query.categoryId || undefined,
+      shopName: undefined,
+      categoryName: undefined
+    }
+  }) as unknown as PageView<PlatformProductSummaryView>
   const items = data.items.map(toPlatformProduct)
   return { ...data, items } satisfies PageResult<PlatformProduct>
 }

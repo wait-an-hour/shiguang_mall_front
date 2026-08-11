@@ -34,8 +34,11 @@ interface CurrentUserView {
 const ADMIN_PERMISSION_BY_BACKEND: Record<string, PermissionCode> = {
   'platform:rbac:manage': 'admin:rbac:role',
   'platform:catalog:manage': 'admin:catalog:category',
+  'platform:shop:manage': 'admin:shop:manage',
+  'platform:shop:member:manage': 'admin:shop:member:manage',
   'platform:product:audit': 'admin:product:audit',
-  'platform:operation:read': 'admin:order:view'
+  'platform:operation:read': 'admin:operation:read',
+  'platform:after-sale:manage': 'admin:after-sale:audit'
 }
 
 const PLATFORM_ROLE_PERMISSION_MAP: Partial<Record<AdminRole, PermissionCode[]>> = {
@@ -50,7 +53,8 @@ const PLATFORM_ROLE_PERMISSION_MAP: Partial<Record<AdminRole, PermissionCode[]>>
     'admin:product:audit',
     'admin:inventory:view',
     'admin:order:view',
-    'admin:after-sale:audit'
+    'admin:after-sale:audit',
+    'admin:operation:read'
   ],
   PLATFORM_SHOP_ADMIN: ['admin:shop:manage', 'admin:rbac:account'],
   PLATFORM_PRODUCT_AUDITOR: ['admin:product:view', 'admin:product:audit'],
@@ -95,6 +99,7 @@ function toPermissions(current: CurrentUserView): PermissionCode[] {
   if (mapped.includes('admin:catalog:category')) mapped.push('admin:catalog:brand')
   if (mapped.includes('admin:shop:manage')) mapped.push('admin:dashboard:view')
   if (mapped.includes('admin:product:audit')) mapped.push('admin:product:view')
+  if (mapped.includes('admin:operation:read')) mapped.push('admin:dashboard:view', 'admin:order:view', 'admin:inventory:view')
   if (mapped.includes('admin:order:view')) mapped.push('admin:dashboard:view', 'admin:inventory:view')
 
   return Array.from(new Set(mapped))

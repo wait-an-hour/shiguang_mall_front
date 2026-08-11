@@ -48,7 +48,7 @@ const metricCards = [
     label: '待裁决申诉',
     valueKey: 'pendingAfterSale',
     routeName: ROUTE_NAME.AdminAfterSaleAppeals,
-    description: '点击进入售后申诉',
+    description: '点击进入售后审核',
     permission: 'admin:after-sale:audit'
   }
 ] as const

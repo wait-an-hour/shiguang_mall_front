@@ -28,6 +28,7 @@ export type PermissionCode =
   | 'admin:catalog:category'
   | 'admin:catalog:brand'
   | 'admin:shop:manage'
+  | 'admin:shop:member:manage'
   | 'admin:product:view'
   | 'admin:product:audit'
   | 'admin:inventory:view'
@@ -52,20 +53,27 @@ export interface PlatformAccount extends PlatformUser {
 }
 
 export type ShopMemberStatus = 'ACTIVE' | 'DISABLED'
-export type ShopMemberRole =
-  | 'SHOP_ADMIN'
-  | 'SHOP_PRODUCT_OPERATOR'
-  | 'SHOP_ORDER_OPERATOR'
-  | 'SHOP_INVENTORY_OPERATOR'
 
 export interface ShopMemberView {
-  id: Id
-  username: string
-  nickname: string
-  roleCode: ShopMemberRole
-  roleName: string
+  shopId: Id
+  user: {
+    id: Id
+    username: string
+    nickname: string
+    avatarUrl: string | null
+    status: AccountStatus
+  }
+  role: {
+    id: Id
+    roleCode: string
+    roleName: string
+    scopeType: 'PLATFORM' | 'SHOP'
+    description: string | null
+    status: ShopMemberStatus
+    createdAt: Timestamp
+    updatedAt: Timestamp
+  }
   status: ShopMemberStatus
-  phone: string | null
   createdAt: Timestamp
   updatedAt: Timestamp
 }
@@ -224,8 +232,12 @@ export interface AppealSummary {
   createdAt: Timestamp
   decidedAt: Timestamp | null
 }
-export interface AppealDetail extends AppealSummary {
+export interface AppealDetail {
+  id: Id
+  appealNo: string
   afterSale: { afterSaleId: Id; afterSaleNo: string; requestType: AfterSaleType; status: string; refundStatus: string; order: { id: Id; orderNo: string; orderStatus: string }; requestedAmount: Money; approvedAmount: Money | null }
+  triggerType: AfterSaleAppealTriggerType
+  status: AfterSaleAppealStatus
   reasonCode: string
   reasonDescription: string
   evidenceUrls: string[]
@@ -235,8 +247,13 @@ export interface AppealDetail extends AppealSummary {
   approvedAmount: Money | null
   decidedBy: AppealOperatorBrief | null
   decisionComment: string | null
+  decidedAt: Timestamp | null
   version: number
+  createdAt: Timestamp
   updatedAt: Timestamp
+  shop: AppealShopSummary
+  buyer: AppealUserSummary
+  order: { id: Id; orderNo: string; orderStatus: string }
   item: { id: Id; productName: string; skuName: string; spec: Record<string, string>; imageUrl: string | null; unitPrice: Money; purchasedQuantity: number } | null
 }
 
@@ -251,6 +268,8 @@ export interface PageResult<T> {
 export interface ListQuery {
   keyword?: string
   status?: string
+  shopId?: Id | ''
+  categoryId?: Id | ''
   shopName?: string
   categoryName?: string
   page?: number

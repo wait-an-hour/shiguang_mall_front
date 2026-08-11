@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
+import { getCategoryTree, type CategoryNode } from '../../../api/product'
 import {
   getMerchantProducts,
   putMerchantProductOnShelf,
@@ -18,6 +19,8 @@ const route = useRoute()
 const router = useRouter()
 const shopId = computed(() => String(route.params.shopId))
 const loading = ref(false)
+const categoriesLoading = ref(false)
+const categoryTree = ref<CategoryNode[]>([])
 const pageData = ref<PageView<ShopProductSummaryView>>({ items: [], page: 1, pageSize: 10, total: 0, totalPages: 1 })
 
 const filters = reactive({
@@ -39,10 +42,87 @@ function getProductStatusTagType(status: ProductStatus) {
   return PRODUCT_STATUS_TAG_TYPES[status]
 }
 
+async function loadCategories() {
+  categoriesLoading.value = true
+  try {
+    categoryTree.value = await getCategoryTree()
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '类目列表加载失败')
+  } finally {
+    categoriesLoading.value = false
+  }
+}
+
+function findCategory(nodes: CategoryNode[], categoryId: string): CategoryNode | undefined {
+  for (const node of nodes) {
+    if (node.id === categoryId) return node
+    const matched = findCategory(node.children ?? [], categoryId)
+    if (matched) return matched
+  }
+}
+
+function collectLeafCategoryIds(node: CategoryNode): string[] {
+  const children = node.children ?? []
+  return children.length === 0 ? [node.id] : children.flatMap(collectLeafCategoryIds)
+}
+
+function sortProducts(products: ShopProductSummaryView[]) {
+  return [...products].sort((left, right) => {
+    if (filters.sort === 'stock_asc') {
+      return left.totalAvailableStock - right.totalAvailableStock || right.id.localeCompare(left.id)
+    }
+    const leftTime = filters.sort === 'created_desc' ? left.createdAt : left.updatedAt
+    const rightTime = filters.sort === 'created_desc' ? right.createdAt : right.updatedAt
+    return rightTime.localeCompare(leftTime) || right.id.localeCompare(left.id)
+  })
+}
+
+async function getAllProductsByCategory(categoryId?: string) {
+  const requestSort = filters.sort === 'stock_asc' ? 'updated_desc' : filters.sort
+  const firstPage = await getMerchantProducts(shopId.value, {
+    keyword: filters.keyword,
+    status: filters.status,
+    categoryId,
+    sort: requestSort,
+    page: 1,
+    pageSize: 100
+  })
+  if (firstPage.totalPages <= 1) return firstPage.items
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPages - 1 }, (_, index) => getMerchantProducts(shopId.value, {
+      keyword: filters.keyword,
+      status: filters.status,
+      categoryId,
+      sort: requestSort,
+      page: index + 2,
+      pageSize: 100
+    }))
+  )
+  return [firstPage.items, ...remainingPages.map((page) => page.items)].flat()
+}
+
 async function loadProducts() {
   loading.value = true
   try {
-    pageData.value = await getMerchantProducts(shopId.value, filters)
+    const selectedCategory = filters.categoryId ? findCategory(categoryTree.value, filters.categoryId) : undefined
+    if (filters.sort !== 'stock_asc' && !selectedCategory?.children?.length) {
+      pageData.value = await getMerchantProducts(shopId.value, filters)
+      return
+    }
+
+    const categoryIds = selectedCategory?.children?.length
+      ? collectLeafCategoryIds(selectedCategory)
+      : [filters.categoryId || undefined]
+    const categoryProducts = await Promise.all(categoryIds.map(getAllProductsByCategory))
+    const products = sortProducts([...new Map(categoryProducts.flat().map((product) => [product.id, product])).values()])
+    const start = (filters.page - 1) * filters.pageSize
+    pageData.value = {
+      items: products.slice(start, start + filters.pageSize),
+      page: filters.page,
+      pageSize: filters.pageSize,
+      total: products.length,
+      totalPages: Math.max(1, Math.ceil(products.length / filters.pageSize))
+    }
   } finally {
     loading.value = false
   }
@@ -67,6 +147,15 @@ function search() {
   filters.page = 1
   syncQuery()
   loadProducts()
+}
+
+function changeSort() {
+  if (filters.page === 1) {
+    syncQuery()
+    void loadProducts()
+    return
+  }
+  filters.page = 1
 }
 
 function resetFilters() {
@@ -104,7 +193,10 @@ watch(() => [filters.page, filters.pageSize], () => {
   loadProducts()
 })
 
-onMounted(loadProducts)
+onMounted(async () => {
+  await loadCategories()
+  await loadProducts()
+})
 </script>
 
 <template>
@@ -127,11 +219,24 @@ onMounted(loadProducts)
             <el-option v-for="[value, label] in statusOptions" :key="value" :label="label" :value="value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="类目 ID">
-          <el-input v-model="filters.categoryId" clearable placeholder="CAT1001" style="width: 140px" />
+        <el-form-item label="类目">
+          <el-tree-select
+            v-model="filters.categoryId"
+            :data="categoryTree"
+            :loading="categoriesLoading"
+            :props="{ value: 'id', label: 'categoryName', children: 'children' }"
+            clearable
+            filterable
+            check-strictly
+            default-expand-all
+            placeholder="全部类目"
+            style="width: 220px"
+          >
+            <template #default="{ data }">{{ data.categoryName }}（{{ data.categoryCode }}）</template>
+          </el-tree-select>
         </el-form-item>
         <el-form-item label="排序">
-          <el-select v-model="filters.sort" style="width: 150px">
+          <el-select v-model="filters.sort" style="width: 150px" @change="changeSort">
             <el-option label="创建时间倒序" value="created_desc" />
             <el-option label="更新时间倒序" value="updated_desc" />
             <el-option label="库存从低到高" value="stock_asc" />
@@ -162,7 +267,6 @@ onMounted(loadProducts)
             <el-tag :type="getProductStatusTagType(row.status)" effect="light">{{ getProductStatusLabel(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="minSalePrice" label="最低售价" width="120" />
         <el-table-column prop="skuCount" label="SKU" width="80" />
         <el-table-column prop="totalAvailableStock" label="可用库存" width="110" />
         <el-table-column prop="updatedAt" label="更新时间" width="210" />

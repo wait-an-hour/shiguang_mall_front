@@ -22,7 +22,18 @@ export interface DecideAfterSaleAppealRequest {
 }
 
 export function listAfterSaleAppeals(query: AfterSaleAppealQuery = {}) {
-  return request.get<PageView<AppealSummary>>('/platform/after-sale-appeals', { params: query }) as unknown as Promise<PageView<AppealSummary>>
+  return request.get<PageView<AppealSummary>>('/platform/after-sale-appeals', {
+    params: {
+      status: query.status || undefined,
+      triggerType: query.triggerType || undefined,
+      shopId: query.shopId || undefined,
+      afterSaleNo: query.afterSaleNo?.trim() || undefined,
+      createdFrom: query.createdFrom || undefined,
+      createdTo: query.createdTo || undefined,
+      page: query.page,
+      pageSize: query.pageSize
+    }
+  }) as unknown as Promise<PageView<AppealSummary>>
 }
 
 export function getAfterSaleAppealDetail(appealId: Id) {

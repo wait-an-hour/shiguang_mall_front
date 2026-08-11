@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import PageHeader from '@/components/common/PageHeader.vue'
 import SearchPanel from '@/components/common/SearchPanel.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
@@ -8,9 +8,13 @@ import EmptyState from '@/components/common/EmptyState.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import {
   createPlatformShop,
+  getPlatformShopDetail,
   getPlatformShops,
   setPlatformShopStatus,
   updatePlatformShop,
+  type CreateShopRequest,
+  type PlatformShopQuery,
+  type PlatformShopSort,
   type PlatformShopView,
   type UpdateShopRequest
 } from '@/api/admin/shops'
@@ -24,6 +28,13 @@ interface ShopForm {
   contactName: string
   contactPhone: string
   adminUsername: string
+}
+
+interface StatusForm {
+  shopId: string
+  shopName: string
+  targetStatus: ShopStatus
+  reason: string
 }
 
 const SHOP_STATUS_LABEL: Record<ShopStatus, string> = {
@@ -40,12 +51,45 @@ const SHOP_STATUS_TYPE: Record<ShopStatus, 'success' | 'warning' | 'danger' | 'i
   CLOSED: 'info'
 }
 
-const query = reactive({ keyword: '', status: '' as ShopStatus | '', page: 1, pageSize: 10 })
+const SHOP_SORT_OPTIONS: Array<{ label: string; value: PlatformShopSort }> = [
+  { label: '创建时间倒序', value: 'createdAt,desc' },
+  { label: '更新时间倒序', value: 'updatedAt,desc' },
+  { label: '店铺名称升序', value: 'shopName,asc' },
+  { label: '状态升序', value: 'status,asc' }
+]
+
+const STATUS_ACTION_LABEL: Record<ShopStatus, string> = {
+  PENDING: '待开通',
+  ACTIVE: '启用',
+  SUSPENDED: '停业',
+  CLOSED: '关闭'
+}
+
+const STATUS_TRANSITIONS: Record<ShopStatus, ShopStatus[]> = {
+  PENDING: ['ACTIVE', 'CLOSED'],
+  ACTIVE: ['SUSPENDED', 'CLOSED'],
+  SUSPENDED: ['ACTIVE', 'CLOSED'],
+  CLOSED: []
+}
+
+const query = reactive<Required<PlatformShopQuery>>({
+  keyword: '',
+  status: '',
+  page: 1,
+  pageSize: 10,
+  sort: 'createdAt,desc'
+})
 const rows = ref<PlatformShopView[]>([])
 const total = ref(0)
 const loading = ref(false)
 const dialogVisible = ref(false)
+const detailLoading = ref(false)
+const detailLoaded = ref(true)
+const submitting = ref(false)
 const formRef = ref<FormInstance>()
+const statusDialogVisible = ref(false)
+const statusSubmitting = ref(false)
+const statusFormRef = ref<FormInstance>()
 
 const form = reactive<ShopForm>({
   id: '',
@@ -57,9 +101,35 @@ const form = reactive<ShopForm>({
   adminUsername: ''
 })
 
+const statusForm = reactive<StatusForm>({
+  shopId: '',
+  shopName: '',
+  targetStatus: 'ACTIVE',
+  reason: ''
+})
+
 const rules: FormRules<ShopForm> = {
-  shopName: [{ required: true, message: '请输入店铺名称', trigger: 'blur' }],
-  adminUsername: [{ required: true, message: '请输入商家注册账号', trigger: 'blur' }]
+  shopName: [
+    { required: true, whitespace: true, message: '请输入店铺名称', trigger: 'blur' },
+    { min: 1, max: 128, message: '店铺名称长度为 1 到 128 个字符', trigger: 'blur' }
+  ],
+  description: [{ max: 500, message: '店铺描述不能超过 500 个字符', trigger: 'blur' }],
+  contactName: [{ max: 64, message: '联系人不能超过 64 个字符', trigger: 'blur' }],
+  contactPhone: [{ max: 32, message: '联系电话不能超过 32 个字符', trigger: 'blur' }],
+  adminUsername: [{ required: true, whitespace: true, message: '请输入商家注册账号', trigger: 'blur' }]
+}
+
+const statusRules: FormRules<StatusForm> = {
+  reason: [
+    { required: true, whitespace: true, message: '请输入状态变更原因', trigger: 'blur' },
+    { max: 500, message: '状态变更原因不能超过 500 个字符', trigger: 'blur' }
+  ]
+}
+
+function showAsyncError(error: unknown) {
+  if (error instanceof Error) {
+    ElMessage.error(error.message)
+  }
 }
 
 async function loadData() {
@@ -69,10 +139,15 @@ async function loadData() {
     rows.value = data.items
     total.value = data.total
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : '店铺列表加载失败')
+    showAsyncError(error)
   } finally {
     loading.value = false
   }
+}
+
+function search() {
+  query.page = 1
+  loadData()
 }
 
 function resetForm() {
@@ -85,52 +160,80 @@ function resetForm() {
     contactPhone: '',
     adminUsername: ''
   })
+  formRef.value?.clearValidate()
 }
 
 function openCreate() {
   resetForm()
+  detailLoaded.value = true
   dialogVisible.value = true
 }
 
-function openEdit(row: PlatformShopView) {
-  Object.assign(form, {
-    id: row.shop.id,
-    shopName: row.shop.shopName,
-    logoUrl: row.shop.logoUrl || '',
-    description: row.description || '',
-    contactName: row.contactName || '',
-    contactPhone: row.contactPhone || '',
-    adminUsername: ''
-  })
+async function openEdit(row: PlatformShopView) {
+  resetForm()
+  form.id = row.shop.id
+  detailLoaded.value = false
+  detailLoading.value = true
   dialogVisible.value = true
+
+  try {
+    const detail = await getPlatformShopDetail(row.shop.id)
+    Object.assign(form, {
+      id: detail.shop.id,
+      shopName: detail.shop.shopName,
+      logoUrl: detail.shop.logoUrl ?? '',
+      description: detail.description ?? '',
+      contactName: detail.contactName ?? '',
+      contactPhone: detail.contactPhone ?? '',
+      adminUsername: ''
+    })
+    detailLoaded.value = true
+  } catch (error) {
+    showAsyncError(error)
+  } finally {
+    detailLoading.value = false
+  }
 }
 
-function toOptional(value: string) {
-  return value.trim() || undefined
+function toNullable(value: string) {
+  return value.trim() || null
 }
 
 async function submit() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
 
-  const payload: UpdateShopRequest = {
-    shopName: form.shopName.trim(),
-    logoUrl: toOptional(form.logoUrl),
-    description: toOptional(form.description),
-    contactName: toOptional(form.contactName),
-    contactPhone: toOptional(form.contactPhone)
-  }
+  submitting.value = true
+  try {
+    if (form.id) {
+      const payload: UpdateShopRequest = {
+        shopName: form.shopName.trim(),
+        logoUrl: toNullable(form.logoUrl),
+        description: toNullable(form.description),
+        contactName: toNullable(form.contactName),
+        contactPhone: toNullable(form.contactPhone)
+      }
+      await updatePlatformShop(form.id, payload)
+      ElMessage.success('店铺信息已更新')
+    } else {
+      const payload: CreateShopRequest = {
+        shopName: form.shopName.trim(),
+        description: toNullable(form.description),
+        contactName: toNullable(form.contactName),
+        contactPhone: toNullable(form.contactPhone),
+        adminUsername: form.adminUsername.trim()
+      }
+      await createPlatformShop(payload)
+      ElMessage.success('店铺已创建，商家账号已绑定为店铺管理员')
+    }
 
-  if (form.id) {
-    await updatePlatformShop(form.id, payload)
-    ElMessage.success('店铺信息已更新')
-  } else {
-    await createPlatformShop({ ...payload, adminUsername: form.adminUsername.trim() })
-    ElMessage.success('店铺已创建，商家账号已绑定为店铺管理员')
+    dialogVisible.value = false
+    await loadData()
+  } catch (error) {
+    showAsyncError(error)
+  } finally {
+    submitting.value = false
   }
-
-  dialogVisible.value = false
-  loadData()
 }
 
 function getShopStatusLabel(status: ShopStatus) {
@@ -141,10 +244,52 @@ function getShopStatusType(status: ShopStatus) {
   return SHOP_STATUS_TYPE[status]
 }
 
-async function changeStatus(row: PlatformShopView, targetStatus: ShopStatus) {
-  await setPlatformShopStatus(row.shop.id, targetStatus, '平台管理端操作')
-  ElMessage.success('店铺状态已更新')
-  loadData()
+function getStatusActions(status: ShopStatus) {
+  return STATUS_TRANSITIONS[status]
+}
+
+function openStatusDialog(row: PlatformShopView, targetStatus: ShopStatus) {
+  Object.assign(statusForm, {
+    shopId: row.shop.id,
+    shopName: row.shop.shopName,
+    targetStatus,
+    reason: ''
+  })
+  statusFormRef.value?.clearValidate()
+  statusDialogVisible.value = true
+}
+
+async function submitStatusChange() {
+  const valid = await statusFormRef.value?.validate().catch(() => false)
+  if (!valid) return
+
+  const targetLabel = SHOP_STATUS_LABEL[statusForm.targetStatus]
+  const confirmed = await ElMessageBox.confirm(
+    `确认将店铺“${statusForm.shopName}”的状态变更为“${targetLabel}”吗？提交后将立即生效。`,
+    '确认状态变更',
+    {
+      confirmButtonText: '确认变更',
+      cancelButtonText: '取消',
+      type: statusForm.targetStatus === 'CLOSED' ? 'warning' : 'info'
+    }
+  ).then(() => true).catch(() => false)
+  if (!confirmed) return
+
+  statusSubmitting.value = true
+  try {
+    await setPlatformShopStatus(
+      statusForm.shopId,
+      statusForm.targetStatus,
+      statusForm.reason.trim()
+    )
+    ElMessage.success('店铺状态已更新')
+    statusDialogVisible.value = false
+    await loadData()
+  } catch (error) {
+    showAsyncError(error)
+  } finally {
+    statusSubmitting.value = false
+  }
 }
 
 onMounted(loadData)
@@ -168,7 +313,12 @@ onMounted(loadData)
             <el-option v-for="(label, value) in SHOP_STATUS_LABEL" :key="value" :label="label" :value="value" />
           </el-select>
         </el-form-item>
-        <el-button type="primary" @click="query.page = 1; loadData()">查询</el-button>
+        <el-form-item label="排序">
+          <el-select v-model="query.sort" placeholder="请选择排序">
+            <el-option v-for="option in SHOP_SORT_OPTIONS" :key="option.value" :label="option.label" :value="option.value" />
+          </el-select>
+        </el-form-item>
+        <el-button type="primary" @click="search">查询</el-button>
       </el-form>
     </SearchPanel>
 
@@ -192,9 +342,15 @@ onMounted(loadData)
           <template #default="{ row }">
             <div class="table-actions">
               <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-              <el-button v-if="row.shop.status !== 'ACTIVE' && row.shop.status !== 'CLOSED'" link type="success" @click="changeStatus(row, 'ACTIVE')">启用</el-button>
-              <el-button v-if="row.shop.status === 'ACTIVE'" link type="warning" @click="changeStatus(row, 'SUSPENDED')">停业</el-button>
-              <el-button v-if="row.shop.status !== 'CLOSED'" link type="danger" @click="changeStatus(row, 'CLOSED')">关闭</el-button>
+              <el-button
+                v-for="targetStatus in getStatusActions(row.shop.status)"
+                :key="targetStatus"
+                link
+                :type="targetStatus === 'ACTIVE' ? 'success' : targetStatus === 'SUSPENDED' ? 'warning' : 'danger'"
+                @click="openStatusDialog(row, targetStatus)"
+              >
+                {{ STATUS_ACTION_LABEL[targetStatus] }}
+              </el-button>
             </div>
           </template>
         </el-table-column>
@@ -203,30 +359,52 @@ onMounted(loadData)
       <AppPagination :page="query.page" :page-size="query.pageSize" :total="total" @change="Object.assign(query, $event); loadData()" />
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑店铺' : '创建店铺'" width="560px">
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="110px">
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑店铺' : '创建店铺'" width="560px" :close-on-click-modal="false">
+      <el-form ref="formRef" v-loading="detailLoading" :model="form" :rules="rules" label-width="110px">
         <el-form-item label="店铺名称" prop="shopName">
-          <el-input v-model="form.shopName" clearable />
+          <el-input v-model="form.shopName" clearable maxlength="128" />
         </el-form-item>
         <el-form-item v-if="!form.id" label="商家账号" prop="adminUsername">
           <el-input v-model="form.adminUsername" clearable placeholder="填写商家预注册的 username" />
         </el-form-item>
-        <el-form-item label="联系人">
-          <el-input v-model="form.contactName" clearable />
+        <el-form-item label="联系人" prop="contactName">
+          <el-input v-model="form.contactName" clearable maxlength="64" />
         </el-form-item>
-        <el-form-item label="联系电话">
-          <el-input v-model="form.contactPhone" clearable />
+        <el-form-item label="联系电话" prop="contactPhone">
+          <el-input v-model="form.contactPhone" clearable maxlength="32" />
         </el-form-item>
-        <el-form-item label="Logo URL">
-          <el-input v-model="form.logoUrl" clearable />
-        </el-form-item>
-        <el-form-item label="店铺描述">
-          <el-input v-model="form.description" type="textarea" :rows="3" />
+        <el-form-item label="店铺描述" prop="description">
+          <el-input v-model="form.description" type="textarea" :rows="3" maxlength="500" show-word-limit />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submit">保存</el-button>
+        <el-button :disabled="submitting" @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" :disabled="detailLoading || !detailLoaded" @click="submit">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="statusDialogVisible" title="变更店铺状态" width="520px" :close-on-click-modal="false">
+      <el-form ref="statusFormRef" :model="statusForm" :rules="statusRules" label-width="100px">
+        <el-form-item label="店铺">
+          <span>{{ statusForm.shopName }}</span>
+        </el-form-item>
+        <el-form-item label="目标状态">
+          <StatusTag :label="getShopStatusLabel(statusForm.targetStatus)" :type="getShopStatusType(statusForm.targetStatus)" />
+        </el-form-item>
+        <el-form-item label="变更原因" prop="reason">
+          <el-input
+            v-model="statusForm.reason"
+            type="textarea"
+            :rows="4"
+            maxlength="500"
+            show-word-limit
+            placeholder="请填写本次状态变更原因"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button :disabled="statusSubmitting" @click="statusDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="statusSubmitting" @click="submitStatusChange">提交变更</el-button>
       </template>
     </el-dialog>
   </div>

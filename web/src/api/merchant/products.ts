@@ -95,9 +95,7 @@ interface BackendShopProductDetailView extends BackendShopProductSummaryView {
 }
 
 function toSort(sort?: MerchantProductQuery['sort']) {
-  if (sort === 'created_desc') return 'createdAt,desc'
-  if (sort === 'stock_asc') return 'availableQuantity,asc'
-  return 'updatedAt,desc'
+  return sort === 'created_desc' ? 'createdAt,desc' : 'updatedAt,desc'
 }
 
 function toCategory(category: BackendCategoryBrief) {
@@ -152,9 +150,12 @@ function toSummary(product: BackendShopProductSummaryView): ShopProductSummaryVi
 
 function toDetail(product: BackendShopProductDetailView): ShopProductDetailView {
   const skus = product.skus.map(toSku)
+  const minSalePrice = skus.length
+    ? skus.reduce((min, sku) => Number(sku.salePrice) < Number(min.salePrice) ? sku : min).salePrice
+    : ''
   return {
     ...toSummary(product),
-    minSalePrice: skus.reduce((min, sku) => sku.salePrice < min ? sku.salePrice : min, skus[0]?.salePrice ?? '0.00'),
+    minSalePrice,
     galleryImageUrls: product.galleryUrls,
     detailHtml: product.detailHtml,
     packageList: product.packingList,
@@ -221,7 +222,14 @@ function toUpdatePayload(data: UpdateProductContentRequest, detail: ShopProductD
 
 export async function getMerchantProducts(shopId: Id, query: MerchantProductQuery = {}) {
   const data = await request.get<PageView<BackendShopProductSummaryView>>(`/shops/${shopId}/products`, {
-    params: { ...query, status: query.status || undefined, categoryId: query.categoryId || undefined, sort: toSort(query.sort) }
+    params: {
+      page: query.page,
+      pageSize: query.pageSize,
+      keyword: query.keyword || undefined,
+      status: query.status || undefined,
+      categoryId: query.categoryId || undefined,
+      sort: toSort(query.sort)
+    }
   }) as unknown as PageView<BackendShopProductSummaryView>
   return { ...data, items: data.items.map(toSummary) }
 }

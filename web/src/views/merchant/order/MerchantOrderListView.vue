@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { getMerchantOrders, shipMerchantOrder } from '../../../api/merchant/orders'
+import { getAllMerchantOrders, getMerchantOrders, shipMerchantOrder } from '../../../api/merchant/orders'
 import {
   ORDER_PAYMENT_STATUS_LABELS,
   ORDER_PAYMENT_STATUS_TAG_TYPES,
@@ -44,10 +44,45 @@ function getOrderStatusTagType(status: OrderStatus) { return ORDER_STATUS_TAG_TY
 function getPaymentStatusLabel(status: OrderPaymentStatus) { return ORDER_PAYMENT_STATUS_LABELS[status] }
 function getPaymentStatusTagType(status: OrderPaymentStatus) { return ORDER_PAYMENT_STATUS_TAG_TYPES[status] }
 
+function matchesKeyword(order: ShopOrderSummaryView, keyword: string) {
+  const normalizedKeyword = keyword.trim().toLocaleLowerCase()
+  if (!normalizedKeyword) return true
+  return [
+    order.orderNo,
+    order.tradeNo,
+    order.buyer.username,
+    order.buyer.nickname,
+    ...order.itemSummary.flatMap((item) => [item.productName, item.skuName])
+  ].some((value) => value?.toLocaleLowerCase().includes(normalizedKeyword))
+}
+
 async function loadOrders() {
   loading.value = true
   try {
-    pageData.value = await getMerchantOrders(shopId.value, filters)
+    const keyword = filters.keyword.trim()
+    if (!keyword) {
+      pageData.value = await getMerchantOrders(shopId.value, filters)
+      return
+    }
+
+    const allOrders = await getAllMerchantOrders(shopId.value, {
+      orderStatus: filters.orderStatus,
+      paymentStatus: filters.paymentStatus,
+      createdFrom: filters.createdFrom,
+      createdTo: filters.createdTo
+    })
+    const matchedOrders = allOrders.filter((order) => matchesKeyword(order, keyword))
+    const start = (filters.page - 1) * filters.pageSize
+    const totalPages = Math.max(1, Math.ceil(matchedOrders.length / filters.pageSize))
+    pageData.value = {
+      items: matchedOrders.slice(start, start + filters.pageSize),
+      page: filters.page,
+      pageSize: filters.pageSize,
+      total: matchedOrders.length,
+      totalPages
+    }
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '订单列表加载失败')
   } finally {
     loading.value = false
   }
@@ -139,7 +174,7 @@ onMounted(loadOrders)
         <el-form-item label="关键词"><el-input v-model="filters.keyword" clearable placeholder="订单号 / 买家 / 商品" @keyup.enter="search" /></el-form-item>
         <el-form-item label="订单状态"><el-select v-model="filters.orderStatus" clearable placeholder="全部" style="width: 150px"><el-option v-for="[value, label] in orderStatusOptions" :key="value" :label="label" :value="value" /></el-select></el-form-item>
         <el-form-item label="支付状态"><el-select v-model="filters.paymentStatus" clearable placeholder="全部" style="width: 150px"><el-option v-for="[value, label] in paymentStatusOptions" :key="value" :label="label" :value="value" /></el-select></el-form-item>
-        <el-form-item label="创建时间"><el-date-picker v-model="filters.createdFrom" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss.SSSZ" placeholder="开始时间" style="width: 190px" /><span class="range-separator">至</span><el-date-picker v-model="filters.createdTo" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss.SSSZ" placeholder="结束时间" style="width: 190px" /></el-form-item>
+        <el-form-item label="创建时间"><el-date-picker v-model="filters.createdFrom" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" placeholder="开始时间" style="width: 190px" /><span class="range-separator">至</span><el-date-picker v-model="filters.createdTo" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" placeholder="结束时间" style="width: 190px" /></el-form-item>
         <el-form-item><el-button type="primary" @click="search">查询</el-button><el-button @click="resetFilters">重置</el-button></el-form-item>
       </el-form>
     </el-card>

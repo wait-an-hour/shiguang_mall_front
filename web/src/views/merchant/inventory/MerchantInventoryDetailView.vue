@@ -141,7 +141,7 @@ onMounted(loadDetail)
         <el-form-item v-else label="调整数量"><el-input-number v-model="form.delta" /><div class="form-tip">正数为增加库存，负数为减少库存</div></el-form-item>
         <el-form-item v-if="dialogType === 'adjustment'" label="调整后库存"><el-tag :type="adjustmentAfterStock < 0 ? 'danger' : 'success'">{{ adjustmentAfterStock }}</el-tag></el-form-item>
         <el-form-item label="业务单号"><el-input v-model="form.businessNo" /></el-form-item>
-        <el-form-item label="调整原因" required><el-input v-model="form.remark" type="textarea" :rows="3" maxlength="500" show-word-limit placeholder="请输入库存调整原因" /></el-form-item>
+        <el-form-item label="调整原因" :required="dialogType === 'adjustment'"><el-input v-model="form.remark" type="textarea" :rows="3" maxlength="500" show-word-limit placeholder="请输入库存调整原因" /></el-form-item>
       </el-form>
       <template #footer><el-button @click="dialogVisible = false">取消</el-button><el-button type="primary" @click="submitOperation">确认</el-button></template>
     </el-dialog>

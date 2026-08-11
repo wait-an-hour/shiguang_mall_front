@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { getCategoryAttributes, getCategoryTree, type CategoryAttributeView, type CategoryNode } from '../../../api/product'
+import { getBrandList, getCategoryAttributes, getCategoryTree, type BrandView, type CategoryAttributeView, type CategoryNode } from '../../../api/product'
 import { createMerchantProduct, createMerchantSku, getMerchantProductDetail, updateMerchantProductContent, updateMerchantSku } from '../../../api/merchant/products'
 import { createInventoryInbound } from '../../../api/merchant/inventory'
 import { ApiRequestError } from '../../../utils/request'
@@ -19,6 +19,8 @@ const loading = ref(false)
 const saving = ref(false)
 const product = ref<ShopProductDetailView | null>(null)
 const categoryTree = ref<CategoryNode[]>([])
+const brandOptions = ref<BrandView[]>([])
+const brandsLoading = ref(false)
 const isEdit = computed(() => route.name === ROUTE_NAME.MerchantProductEdit)
 const categoryOptions = computed(() => {
   const options: CategoryNode[] = []
@@ -86,7 +88,6 @@ const rules: FormRules<CreateProductRequest> = {
     { required: true, message: '请输入类目 ID', trigger: 'blur' },
     idRule
   ],
-  brandId: [idRule],
   detailHtml: [{ required: true, message: '请输入详情说明', trigger: 'blur' }]
 }
 
@@ -108,6 +109,18 @@ function fillForm(detail: ShopProductDetailView) {
 
 async function loadCategories() {
   categoryTree.value = await getCategoryTree()
+}
+
+async function loadBrands() {
+  brandsLoading.value = true
+  try {
+    const data = await getBrandList({ page: 1, pageSize: 100, sort: 'brandName,asc' })
+    brandOptions.value = data.items
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '品牌列表加载失败')
+  } finally {
+    brandsLoading.value = false
+  }
 }
 
 async function loadCategoryAttributes(categoryId: string) {
@@ -236,6 +249,7 @@ function back() {
 
 onMounted(() => {
   void loadCategories()
+  void loadBrands()
   void loadDetail()
 })
 </script>
@@ -262,7 +276,11 @@ onMounted(() => {
             <el-option v-for="category in categoryOptions" :key="category.id" :label="`${category.categoryName}（${category.categoryCode}）`" :value="category.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="品牌 ID" prop="brandId"><el-input v-model="form.brandId" placeholder="可选，请输入正整数 ID" /></el-form-item>
+        <el-form-item label="品牌" prop="brandId">
+          <el-select v-model="form.brandId" filterable clearable :loading="brandsLoading" placeholder="请选择品牌（可选）" style="width: 100%">
+            <el-option v-for="brand in brandOptions" :key="brand.id" :label="`${brand.brandName}（${brand.brandCode}）`" :value="brand.id" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="副标题"><el-input v-model="form.subtitle" /></el-form-item>
         <el-form-item label="封面图片" prop="coverImageUrl"><el-input v-model="form.coverImageUrl" placeholder="上传后自动填充图片地址" /><el-upload :show-file-list="false" :auto-upload="false" accept="image/*" :disabled="uploadingPurpose !== null" @change="(file: UploadFile) => handleImageUpload(file, 'PRODUCT_COVER')"><el-button :loading="uploadingPurpose === 'PRODUCT_COVER'">上传封面</el-button></el-upload></el-form-item>
         <el-form-item label="商品图库"><el-input v-model="galleryText" type="textarea" :rows="3" placeholder="每行一个图片 URL" /><el-upload multiple :show-file-list="false" :auto-upload="false" accept="image/*" :disabled="uploadingPurpose !== null" @change="(file: UploadFile) => handleImageUpload(file, 'PRODUCT_GALLERY')"><el-button :loading="uploadingPurpose === 'PRODUCT_GALLERY'">上传图库图片</el-button></el-upload></el-form-item>
