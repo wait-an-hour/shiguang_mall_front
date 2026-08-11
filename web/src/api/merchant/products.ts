@@ -192,7 +192,8 @@ function toCreatePayload(data: CreateProductRequest) {
       salePrice: sku.salePrice.trim(),
       marketPrice: sku.marketPrice.trim() || null,
       barcode: sku.barcode?.trim() || null,
-      imageUrl: sku.imageUrl?.trim() || null
+      imageUrl: sku.imageUrl?.trim() || null,
+      stock: sku.stock
     }))
   }
 }
@@ -250,6 +251,7 @@ export async function createMerchantSku(shopId: Id, spuId: Id, data: CreateSkuRe
     marketPrice: data.marketPrice?.trim() || null,
     barcode: data.barcode?.trim() || null,
     imageUrl: data.imageUrl?.trim() || null,
+    stock: data.stock,
     contentVersion: 0
   }) as unknown as BackendShopProductDetailView
   return toDetail(product).skus.at(-1) as ShopSkuView

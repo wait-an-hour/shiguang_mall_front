@@ -15,24 +15,50 @@ import type { Id } from '@/types/common'
 const route = useRoute()
 const shopId = computed(() => String(route.params.shopId))
 const rows = ref<MerchantMemberView[]>([])
+const roleOptions = ref<Array<{ id: Id; code: MerchantMemberRole; name: string }>>([])
 const total = ref(0)
 const loading = ref(false)
 const dialogVisible = ref(false)
+const roleDialogVisible = ref(false)
 const formRef = ref<FormInstance>()
 const query = reactive<MerchantMemberQuery>({ page: 1, pageSize: 10, keyword: '', roleId: '', status: '' })
 const form = reactive({ username: '', roleId: '' })
+const roleForm = reactive({ userId: '' as Id, username: '', roleId: '' as Id | '' })
 const rules: FormRules<typeof form> = {
   username: [{ required: true, message: '请输入成员账号', trigger: 'blur' }],
   roleId: [{ required: true, message: '请选择店铺角色', trigger: 'change' }]
 }
 
-const roleOptions = computed(() => {
-  const options = new Map<string, { id: Id; name: string }>()
-  for (const member of rows.value) {
-    if (member.roleId && member.roleName) options.set(String(member.roleId), { id: member.roleId, name: member.roleName })
+const roleLabels: Record<MerchantMemberRole, string> = {
+  SHOP_ADMIN: '店铺管理员',
+  SHOP_PRODUCT_OPERATOR: '店铺商品运营',
+  SHOP_ORDER_OPERATOR: '店铺订单客服',
+  SHOP_INVENTORY_OPERATOR: '店铺库存人员'
+}
+
+function mergeRoleOptions(members: MerchantMemberView[]) {
+  const options = new Map(roleOptions.value.map((role) => [String(role.id), role]))
+  for (const member of members) {
+    if (!member.roleId) continue
+    options.set(String(member.roleId), {
+      id: member.roleId,
+      code: member.roleCode,
+      name: member.roleName || roleLabels[member.roleCode]
+    })
   }
-  return [...options.values()]
-})
+  roleOptions.value = [...options.values()]
+}
+
+async function loadRoleOptions() {
+  const pageSize = 100
+  const firstPage = await listShopMembers(shopId.value, { page: 1, pageSize })
+  mergeRoleOptions(firstPage.items)
+  const pageCount = Math.ceil(firstPage.total / pageSize)
+  for (let page = 2; page <= pageCount; page += 1) {
+    const data = await listShopMembers(shopId.value, { page, pageSize })
+    mergeRoleOptions(data.items)
+  }
+}
 
 function statusLabel(status: MerchantMemberStatus) {
   return status === 'ACTIVE' ? '正常' : '已停用'
@@ -43,7 +69,7 @@ function statusType(status: MerchantMemberStatus) {
 }
 
 function roleLabel(role: MerchantMemberRole) {
-  return role === 'SHOP_ADMIN' ? '店铺管理员' : '店铺成员'
+  return roleLabels[role] ?? role
 }
 
 async function loadData() {
@@ -51,6 +77,7 @@ async function loadData() {
   try {
     const data = await listShopMembers(shopId.value, query)
     rows.value = data.items
+    mergeRoleOptions(data.items)
     total.value = data.total
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '成员数据加载失败')
@@ -78,15 +105,22 @@ async function submit() {
   }
 }
 
-async function updateRole(row: MerchantMemberView) {
-  const roleId = roleOptions.value.find((role) => String(role.id) !== String(row.roleId))?.id
-  if (!roleId) {
-    ElMessage.warning('暂无可切换的店铺角色')
+function openRoleDialog(row: MerchantMemberView) {
+  roleForm.userId = row.id
+  roleForm.username = row.username
+  roleForm.roleId = row.roleId
+  roleDialogVisible.value = true
+}
+
+async function updateRole() {
+  if (!roleForm.roleId) {
+    ElMessage.warning('请选择店铺角色')
     return
   }
   try {
-    await changeShopMemberRole(shopId.value, row.id, { roleId })
+    await changeShopMemberRole(shopId.value, roleForm.userId, { roleId: roleForm.roleId })
     ElMessage.success('角色已更新')
+    roleDialogVisible.value = false
     await loadData()
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : '角色更新失败')
@@ -104,7 +138,14 @@ async function toggleStatus(row: MerchantMemberView) {
   }
 }
 
-onMounted(loadData)
+onMounted(async () => {
+  try {
+    await loadRoleOptions()
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '店铺角色加载失败')
+  }
+  await loadData()
+})
 </script>
 
 <template>
@@ -159,11 +200,23 @@ onMounted(loadData)
         <el-form-item label="成员账号" prop="username"><el-input v-model="form.username" clearable placeholder="请输入已注册账号" /></el-form-item>
         <el-form-item label="店铺角色" prop="roleId">
           <el-select v-model="form.roleId" placeholder="请选择角色" style="width: 100%">
-            <el-option v-for="role in roleOptions" :key="role.id" :label="role.name" :value="role.id" />
+            <el-option v-for="role in roleOptions" :key="role.id" :label="role.name || roleLabel(role.code)" :value="role.id" />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer><el-button @click="dialogVisible = false">取消</el-button><el-button type="primary" @click="submit">保存</el-button></template>
+    </el-dialog>
+
+    <el-dialog v-model="roleDialogVisible" title="切换成员角色" width="420px">
+      <el-form label-width="90px">
+        <el-form-item label="成员账号"><el-input :model-value="roleForm.username" disabled /></el-form-item>
+        <el-form-item label="店铺角色" required>
+          <el-select v-model="roleForm.roleId" placeholder="请选择角色" style="width: 100%">
+            <el-option v-for="role in roleOptions" :key="role.id" :label="role.name || roleLabel(role.code)" :value="role.id" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer><el-button @click="roleDialogVisible = false">取消</el-button><el-button type="primary" @click="updateRole">确认切换</el-button></template>
     </el-dialog>
   </div>
 </template>

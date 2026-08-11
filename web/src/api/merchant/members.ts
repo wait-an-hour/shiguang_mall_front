@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 import type { Id, PageView } from '@/types/common'
-import type { MerchantMemberQuery, MerchantMemberStatus, MerchantMemberView } from '@/types/merchant'
+import type { MerchantMemberQuery, MerchantMemberRole, MerchantMemberStatus, MerchantMemberView } from '@/types/merchant'
 
 export interface AddMerchantMemberRequest {
   username: string

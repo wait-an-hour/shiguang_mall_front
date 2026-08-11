@@ -95,7 +95,8 @@ function openDialog(action: AfterSaleAction) {
 
 async function submitAction() {
   if (!detail.value || !dialogType.value) return
-  await formRef.value?.validate()
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) return
   submitting.value = true
   try {
     if (dialogType.value === 'APPROVE') {
@@ -116,6 +117,10 @@ async function submitAction() {
     }
     dialogType.value = ''
     await loadDetail()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '售后操作失败'
+    const requestId = error && typeof error === 'object' && 'requestId' in error ? String(error.requestId || '') : ''
+    ElMessage.error(requestId ? `${message}（请求ID：${requestId}）` : message)
   } finally {
     submitting.value = false
   }

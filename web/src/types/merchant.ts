@@ -52,7 +52,11 @@ export type ProductStatus = 'DRAFT' | 'PENDING_REVIEW' | 'REJECTED' | 'OFF_SHELF
 export type EnabledStatus = 'ENABLED' | 'DISABLED'
 export type StockState = 'NORMAL' | 'LOW' | 'OUT'
 export type MerchantMemberStatus = 'ACTIVE' | 'DISABLED'
-export type MerchantMemberRole = 'SHOP_ADMIN' | 'SHOP_MEMBER'
+export type MerchantMemberRole =
+  | 'SHOP_ADMIN'
+  | 'SHOP_PRODUCT_OPERATOR'
+  | 'SHOP_ORDER_OPERATOR'
+  | 'SHOP_INVENTORY_OPERATOR'
 
 export interface MerchantMemberView {
   id: Id

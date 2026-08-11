@@ -69,9 +69,9 @@ function toBrandRecord(item: BrandView): BrandRecord {
 
 function toBrandPayload(record: BrandRecord) {
   return {
-    brandName: record.name,
-    brandCode: record.code || record.initial || record.name,
-    logoUrl: record.logoUrl ?? ''
+    brandName: record.name.trim(),
+    brandCode: (record.code || record.initial || record.name).trim().toUpperCase(),
+    logoUrl: record.logoUrl?.trim() || ''
   }
 }
 

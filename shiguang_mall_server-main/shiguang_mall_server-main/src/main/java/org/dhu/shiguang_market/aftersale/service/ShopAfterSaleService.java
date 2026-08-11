@@ -420,11 +420,17 @@ public class ShopAfterSaleService {
 
         // 2. 退货回库：增加可用库存 + 写 RETURN 库存流水（businessType=AFTER_SALE, businessNo=afterSaleNo）
         OrderItem item = itemMapper.selectById(ar.getOrderItemId());
+        if (item == null || item.getSkuId() == null) {
+            throw BusinessException.notFound("ORDER_ITEM_NOT_FOUND", "售后关联的订单明细不存在");
+        }
         if (stockMapper.returnStock(item.getSkuId(), ar.getApprovedQuantity()) != 1) {
             throw BusinessException.conflict("INVENTORY_INCONSISTENT", "退货库存不存在");
         }
         InventoryStock afterStock = stockMapper.selectOne(new LambdaQueryWrapper<InventoryStock>()
                 .eq(InventoryStock::getSkuId, item.getSkuId()));
+        if (afterStock == null) {
+            throw BusinessException.conflict("INVENTORY_INCONSISTENT", "退货库存更新后无法读取库存");
+        }
         InventoryTransaction invTx = new InventoryTransaction();
         invTx.setTransactionNo(numbers.next("IT"));
         invTx.setSkuId(item.getSkuId());
