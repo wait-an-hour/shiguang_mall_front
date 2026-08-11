@@ -6,7 +6,7 @@ import SearchPanel from '@/components/common/SearchPanel.vue'
 import StatusTag from '@/components/common/StatusTag.vue'
 import AppPagination from '@/components/common/AppPagination.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
-import { getProductDetail, listProducts, setProductStatus } from '@/api/admin/products'
+import { approveProductReview, getProductDetail, listProducts, rejectProductReview, setProductStatus } from '@/api/admin/products'
 import { useAdminFiltersStore } from '@/stores/adminFilters'
 import { formatMoney, getProductStatusLabel } from '@/utils/labels'
 import type { PlatformProduct, ProductStatus } from '@/types/admin'
@@ -53,6 +53,40 @@ async function openDetail(row: PlatformProduct) {
     detail.value = await getProductDetail(row.id)
   } finally {
     detailLoading.value = false
+  }
+}
+
+async function approveReview(row: PlatformProduct) {
+  try {
+    await ElMessageBox.confirm('确认同意该商品上架申请？', '同意上架', {
+      confirmButtonText: '同意上架',
+      cancelButtonText: '取消',
+      type: 'success'
+    })
+    // 审核通过必须提交当前内容版本，后端会据此防止审核到旧版本商品内容。
+    await approveProductReview(row.id, { contentVersion: row.contentVersion ?? 0, reason: '审核通过' })
+    ElMessage.success('已同意上架申请')
+    loadData()
+  } catch {
+    // 用户取消确认时不做任何状态变更，避免误操作。
+  }
+}
+
+async function rejectReview(row: PlatformProduct) {
+  try {
+    const { value } = await ElMessageBox.prompt('请输入驳回原因', '驳回申请', {
+      confirmButtonText: '驳回申请',
+      cancelButtonText: '取消',
+      inputType: 'textarea',
+      inputPlaceholder: '请填写驳回原因',
+      inputValidator: (value) => Boolean(value.trim()) || '请填写驳回原因'
+    })
+    // 驳回原因是后端必填字段，前端先 trim 后提交，减少无效请求。
+    await rejectProductReview(row.id, { contentVersion: row.contentVersion ?? 0, reason: value.trim() })
+    ElMessage.success('已驳回上架申请')
+    loadData()
+  } catch {
+    // 用户取消输入时不提交驳回请求。
   }
 }
 
@@ -128,10 +162,12 @@ onMounted(loadData)
           </template>
         </el-table-column>
         <el-table-column prop="updatedAt" label="更新时间" min-width="190" />
-        <el-table-column label="操作" fixed="right" width="280">
+        <el-table-column label="操作" fixed="right" width="360">
           <template #default="{ row }">
             <div class="table-actions">
               <el-button link type="primary" @click="openDetail(row)">查看</el-button>
+              <el-button v-if="row.status === 'PENDING_REVIEW'" link type="success" @click="approveReview(row)">同意上架</el-button>
+              <el-button v-if="row.status === 'PENDING_REVIEW'" link type="danger" @click="rejectReview(row)">驳回申请</el-button>
               <el-button v-if="row.status === 'ON_SHELF'" link type="warning" @click="govern(row, 'OFF_SHELF', '强制下架')">强制下架</el-button>
               <el-button v-if="row.status === 'ON_SHELF' || row.status === 'OFF_SHELF'" link type="danger" @click="govern(row, 'BANNED', '禁售')">禁售</el-button>
               <el-button v-if="row.status === 'BANNED'" link type="success" @click="govern(row, 'ON_SHELF', '解禁')">解禁</el-button>

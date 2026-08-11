@@ -75,11 +75,19 @@ function toBrandPayload(record: BrandRecord) {
   }
 }
 
+function createCategoryCode() {
+  return `CAT_${Date.now()}_${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+}
+
 function toCategoryPayload(record: CategoryRecord) {
+  const categoryName = record.name.trim()
+  const categoryCode = record.code?.trim() || createCategoryCode()
   return {
-    parentId: record.parentId,
-    categoryName: record.name,
-    categoryCode: record.code || record.name,
+    // 一级分类不能把空字符串传给后端，否则部分接口会把它当成非法父级 ID。
+    parentId: record.parentId || undefined,
+    categoryName,
+    // 分类编码是后端唯一键，新增时生成时间戳加随机后缀，避免和已有类目代码冲突。
+    categoryCode,
     sortOrder: record.sort
   }
 }

@@ -24,15 +24,11 @@ interface OperationAfterSaleView {
   createdAt: string
 }
 
-interface ProductReviewSummaryView {
-  spuId: string
+interface ProductSummaryView {
+  id: string
   spuNo: string
   productName: string
-  coverUrl: string | null
-  shop: { id: string; shopName: string }
-  category: { id: string; categoryName: string }
-  contentVersion: number
-  submittedAt: string
+  status: string
 }
 
 async function count<T>(url: string, params: Record<string, unknown>) {
@@ -42,7 +38,7 @@ async function count<T>(url: string, params: Record<string, unknown>) {
 
 export async function getAdminDashboard() {
   const [products, orders, shops, pendingAfterSaleAppeals] = await Promise.all([
-    count<ProductReviewSummaryView>('/platform/products/reviews', {}),
+    count<ProductSummaryView>('/platform/products', { status: 'ON_SHELF' }),
     count<OperationOrderView>('/platform/operations/orders', {}),
     count<{ shop: { id: string } }>('/platform/shops', { status: 'ACTIVE' }),
     count<{ id: string }>('/platform/after-sale-appeals', { status: 'PENDING' })
@@ -55,7 +51,7 @@ export async function getAdminDashboard() {
     tasks: [
       `${shops} 家平台店铺正在营业`,
       `${pendingAfterSaleAppeals} 笔售后申诉等待平台裁决`,
-      `${products} 个商品待平台审核`
+      `${products} 个商品已上架`
     ],
     recent: recent.items.map((item) => ({
       id: item.id,

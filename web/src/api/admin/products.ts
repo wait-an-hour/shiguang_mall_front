@@ -59,6 +59,11 @@ interface PlatformProductDetailView {
   updatedAt: Timestamp
 }
 
+interface ReviewDecisionRequest {
+  contentVersion: number
+  reason?: string | null
+}
+
 function toProductSku(item: PlatformProductSkuView): PlatformProductSku {
   return {
     id: item.id,
@@ -138,6 +143,18 @@ export function setProductStatus(id: Id, status: ProductStatus, reason?: string,
   }
 
   throw new Error(`商品状态 ${status} 暂不支持平台接口`)
+}
+
+export async function approveProductReview(id: Id, requestBody: ReviewDecisionRequest) {
+  // 待审核商品必须走审核专用接口，不能复用禁售/解禁治理接口，否则后端权限和状态历史会不准确。
+  const data = await request.post<PlatformProductDetailView>(`/platform/products/reviews/${id}/approve`, requestBody) as unknown as PlatformProductDetailView
+  return toPlatformProductDetail(data)
+}
+
+export async function rejectProductReview(id: Id, requestBody: ReviewDecisionRequest) {
+  // 驳回申请同样写入审核历史，并且后端要求驳回原因必填，所以页面会在提交前做输入校验。
+  const data = await request.post<PlatformProductDetailView>(`/platform/products/reviews/${id}/reject`, requestBody) as unknown as PlatformProductDetailView
+  return toPlatformProductDetail(data)
 }
 
 interface BackendInventoryItemView {

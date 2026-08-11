@@ -24,7 +24,7 @@ const recent = ref<PlatformOrder[]>([])
 
 const metricCards = [
   {
-    label: '平台商品',
+    label: '已上架商品',
     valueKey: 'products',
     routeName: ROUTE_NAME.AdminProducts,
     description: '点击进入商品管理',
@@ -61,7 +61,7 @@ const visibleMetricCards = computed(() => metricCards.filter((card) => auth.hasP
 const visibleTasks = computed(() => {
   if (tasks.value.length) return tasks.value
   const list: string[] = []
-  if (auth.hasPermissions(['admin:product:view'])) list.push(`${metrics.value.products} 个商品待平台审核`)
+  if (auth.hasPermissions(['admin:product:view'])) list.push(`${metrics.value.products} 个商品已上架`)
   if (auth.hasPermissions(['admin:shop:manage'])) list.push(`${metrics.value.shops} 家平台店铺正在营业`)
   if (auth.hasPermissions(['admin:after-sale:audit'])) list.push(`${metrics.value.pendingAfterSale} 笔售后申诉等待平台裁决`)
   if (auth.hasPermissions(['admin:order:view'])) list.push(`${metrics.value.orders} 笔订单正在平台流转`)

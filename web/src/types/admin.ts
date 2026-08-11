@@ -148,15 +148,35 @@ export interface SkuInventory {
   updatedAt: Timestamp
 }
 
+export interface PlatformOrderItem {
+  productName: string
+  skuName: string
+  quantity: number
+  imageUrl?: string | null
+  unitPrice?: Money
+  payableAmount?: Money
+}
+
 export interface PlatformOrder {
   id: Id
   orderNo: string
+  tradeNo?: string
   shopName: string
   buyerName: string
   amount: Money
   status: OrderStatus
   products: string[]
+  orderItems: PlatformOrderItem[]
   createdAt: Timestamp
+  paidAt?: Timestamp | null
+  shippedAt?: Timestamp | null
+  receivedAt?: Timestamp | null
+  completedAt?: Timestamp | null
+  carrierName?: string | null
+  trackingNo?: string | null
+  receiverName?: string | null
+  receiverPhone?: string | null
+  receiverAddress?: string | null
 }
 
 export interface PlatformAfterSale {
