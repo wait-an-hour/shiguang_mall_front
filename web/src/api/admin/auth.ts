@@ -31,14 +31,14 @@ interface CurrentUserView {
   }>
 }
 
-const ADMIN_PERMISSION_BY_BACKEND: Record<string, PermissionCode> = {
-  'platform:rbac:manage': 'admin:rbac:role',
-  'platform:catalog:manage': 'admin:catalog:category',
-  'platform:shop:manage': 'admin:shop:manage',
-  'platform:shop:member:manage': 'admin:shop:member:manage',
-  'platform:product:audit': 'admin:product:audit',
-  'platform:operation:read': 'admin:operation:read',
-  'platform:after-sale:manage': 'admin:after-sale:audit'
+const ADMIN_PERMISSIONS_BY_BACKEND: Record<string, PermissionCode[]> = {
+  'platform:rbac:manage': ['admin:rbac:role', 'admin:rbac:account'],
+  'platform:catalog:manage': ['admin:catalog:category', 'admin:catalog:brand'],
+  'platform:shop:manage': ['admin:shop:manage'],
+  'platform:shop:member:manage': ['admin:shop:member:manage'],
+  'platform:product:audit': ['admin:product:view', 'admin:product:audit'],
+  'platform:operation:read': ['admin:operation:read', 'admin:order:view', 'admin:inventory:view'],
+  'platform:after-sale:manage': ['admin:after-sale:audit']
 }
 
 const PLATFORM_ROLE_PERMISSION_MAP: Partial<Record<AdminRole, PermissionCode[]>> = {
@@ -49,6 +49,7 @@ const PLATFORM_ROLE_PERMISSION_MAP: Partial<Record<AdminRole, PermissionCode[]>>
     'admin:catalog:category',
     'admin:catalog:brand',
     'admin:shop:manage',
+    'admin:shop:member:manage',
     'admin:product:view',
     'admin:product:audit',
     'admin:inventory:view',
@@ -56,7 +57,7 @@ const PLATFORM_ROLE_PERMISSION_MAP: Partial<Record<AdminRole, PermissionCode[]>>
     'admin:after-sale:audit',
     'admin:operation:read'
   ],
-  PLATFORM_SHOP_ADMIN: ['admin:shop:manage', 'admin:rbac:account'],
+  PLATFORM_SHOP_ADMIN: [],
   PLATFORM_PRODUCT_AUDITOR: ['admin:product:view', 'admin:product:audit'],
   SHOP_ADMIN: ['admin:dashboard:view'],
   SHOP_PRODUCT_OPERATOR: ['admin:product:view'],
@@ -89,10 +90,7 @@ function toPermissions(current: CurrentUserView): PermissionCode[] {
     return mappedByRole
   }
 
-  const mappedByBackend = current.platformPermissions.flatMap((permission) => {
-    const matched = ADMIN_PERMISSION_BY_BACKEND[permission]
-    return matched ? [matched] : []
-  })
+  const mappedByBackend = current.platformPermissions.flatMap((permission) => ADMIN_PERMISSIONS_BY_BACKEND[permission] ?? [])
 
   const mapped = [...mappedByRole, ...mappedByBackend]
 

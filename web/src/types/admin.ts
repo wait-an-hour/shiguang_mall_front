@@ -52,7 +52,54 @@ export interface PlatformAccount extends PlatformUser {
   createdAt: Timestamp
 }
 
+export type ShopStatus = 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'CLOSED'
 export type ShopMemberStatus = 'ACTIVE' | 'DISABLED'
+
+export interface PlatformShopSummary {
+  id: Id
+  shopNo: string
+  shopName: string
+  logoUrl: string | null
+  status: ShopStatus
+}
+
+export interface PlatformShopView {
+  shop: PlatformShopSummary
+  description: string | null
+  contactName: string | null
+  contactPhone: string | null
+  membersCount: number
+  activeMembersCount: number
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+export type PlatformShopSort = 'createdAt,desc' | 'updatedAt,desc' | 'shopName,asc' | 'status,asc'
+
+export interface PlatformShopQuery {
+  status?: ShopStatus | ''
+  keyword?: string
+  page?: number
+  pageSize?: number
+  sort?: PlatformShopSort
+}
+
+export interface CreateShopRequest {
+  shopName: string
+  logoUrl?: string | null
+  description?: string | null
+  contactName?: string | null
+  contactPhone?: string | null
+  adminUsername: string
+}
+
+export interface UpdateShopRequest {
+  shopName: string
+  logoUrl: string | null
+  description: string | null
+  contactName: string | null
+  contactPhone: string | null
+}
 
 export interface ShopMemberView {
   shopId: Id
@@ -215,9 +262,9 @@ export type AfterSaleAppealDecision = 'APPROVE' | 'REJECT'
 export type AfterSaleAppealTriggerType = 'MERCHANT_REJECTED' | 'MERCHANT_TIMEOUT'
 export type AfterSaleType = 'REFUND_ONLY' | 'RETURN_REFUND'
 
-export interface AppealShopSummary { id: Id; name: string; code: string; status: string; permissions: string[] }
+export interface AppealShopSummary { id: Id; shopNo: string; shopName: string; logoUrl: string | null; status: ShopStatus }
 export interface AppealUserSummary { id: Id; username: string; nickname: string; avatarUrl: string | null; status: string }
-export interface AppealOperatorBrief { id: Id; username: string; displayName: string }
+export interface AppealOperatorBrief { id: Id; username: string; nickname: string }
 export interface AppealSummary {
   id: Id
   appealNo: string

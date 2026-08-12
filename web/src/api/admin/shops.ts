@@ -1,50 +1,8 @@
 import request from '@/utils/request'
-import type { Id, PageView, Timestamp } from '@/types/common'
-import type { ShopStatus } from '@/types/merchant'
+import type { Id, PageView } from '@/types/common'
+import type { CreateShopRequest, PlatformShopQuery, PlatformShopView, ShopStatus, UpdateShopRequest } from '@/types/admin'
 
-export interface PlatformShopView {
-  shop: {
-    id: Id
-    shopNo: string
-    shopName: string
-    logoUrl: string | null
-    status: ShopStatus
-  }
-  description: string | null
-  contactName: string | null
-  contactPhone: string | null
-  membersCount: number
-  activeMembersCount: number
-  createdAt: Timestamp
-  updatedAt: Timestamp
-}
-
-export type PlatformShopSort = 'createdAt,desc' | 'updatedAt,desc' | 'shopName,asc' | 'status,asc'
-
-export interface PlatformShopQuery {
-  status?: ShopStatus | ''
-  keyword?: string
-  page?: number
-  pageSize?: number
-  sort?: PlatformShopSort
-}
-
-export interface CreateShopRequest {
-  shopName: string
-  logoUrl?: string | null
-  description?: string | null
-  contactName?: string | null
-  contactPhone?: string | null
-  adminUsername: string
-}
-
-export interface UpdateShopRequest {
-  shopName: string
-  logoUrl: string | null
-  description: string | null
-  contactName: string | null
-  contactPhone: string | null
-}
+export type { CreateShopRequest, PlatformShopQuery, PlatformShopSort, PlatformShopView, UpdateShopRequest } from '@/types/admin'
 
 export function getPlatformShops(params: PlatformShopQuery = {}) {
   return request.get<PageView<PlatformShopView>>('/platform/shops', {

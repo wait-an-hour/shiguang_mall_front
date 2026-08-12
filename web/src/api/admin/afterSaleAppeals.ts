@@ -40,8 +40,8 @@ export function getAfterSaleAppealDetail(appealId: Id) {
   return request.get<AppealDetail>(`/platform/after-sale-appeals/${appealId}`) as unknown as Promise<AppealDetail>
 }
 
-export function decideAfterSaleAppeal(appealId: Id, body: DecideAfterSaleAppealRequest) {
+export function decideAfterSaleAppeal(appealId: Id, body: DecideAfterSaleAppealRequest, idempotencyKey: string) {
   return request.post<AppealDetail>(`/platform/after-sale-appeals/${appealId}/decide`, body, {
-    headers: { 'Idempotency-Key': crypto.randomUUID() }
+    headers: { 'Idempotency-Key': idempotencyKey }
   }) as unknown as Promise<AppealDetail>
 }

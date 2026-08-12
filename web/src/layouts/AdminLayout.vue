@@ -22,10 +22,11 @@ interface AdminMenuItem {
   title: string
   path: string
   permissions: PermissionCode[]
+  permissionMode?: 'all' | 'any'
 }
 
 const menus = computed<AdminMenuItem[]>(() => [
-  { title: '首页概览', path: homePath.value, permissions: ['admin:dashboard:view', 'admin:product:view', 'admin:shop:manage'] },
+  { title: '首页概览', path: homePath.value, permissions: ['admin:dashboard:view', 'admin:product:view', 'admin:shop:manage'], permissionMode: 'any' },
   { title: '角色管理', path: '/admin/rbac/roles', permissions: ['admin:rbac:role'] },
   { title: '平台账号', path: '/admin/rbac/accounts', permissions: ['admin:rbac:account'] },
   { title: '店铺成员', path: '/admin/shops/members', permissions: ['admin:shop:member:manage'] },
@@ -42,8 +43,15 @@ const menus = computed<AdminMenuItem[]>(() => [
 const visibleMenus = computed(() => menus.value.filter((item) => {
   // 平台店铺管理员没有独立首页，左侧直接隐藏“首页概览”，避免误导为与超级管理员共用首页。
   if (auth.role === 'PLATFORM_SHOP_ADMIN' && item.title === '首页概览') return false
-  return auth.hasPermissions(item.permissions)
+  return item.permissionMode === 'any'
+    ? item.permissions.some((permission) => auth.hasPermissions([permission]))
+    : auth.hasPermissions(item.permissions)
 }))
+
+function isMenuActive(item: AdminMenuItem) {
+  if (item.path !== '/admin/shops') return route.path === item.path
+  return route.path === '/admin/shops' || /^\/admin\/shops\/(create|[^/]+(?:\/edit)?)$/.test(route.path)
+}
 
 function logout() {
   auth.clearSession()
@@ -67,7 +75,7 @@ function logout() {
         <div class="context-meta">与商家端权限隔离</div>
       </div>
       <nav class="menu">
-        <router-link v-for="item in visibleMenus" :key="item.path" class="menu-item" :class="{ 'is-active': route.path === item.path }" :to="item.path">{{ item.title }}</router-link>
+        <router-link v-for="item in visibleMenus" :key="item.path" class="menu-item" :class="{ 'is-active': isMenuActive(item) }" :to="item.path">{{ item.title }}</router-link>
       </nav>
     </aside>
 

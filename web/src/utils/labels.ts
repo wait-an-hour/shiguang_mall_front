@@ -1,4 +1,4 @@
-import type { AdminRole, AfterSaleStatus, CommonStatus, OrderStatus, ProductStatus } from '@/types/admin'
+import type { AdminRole, AfterSaleAppealStatus, AfterSaleAppealTriggerType, AfterSaleStatus, AfterSaleType, CommonStatus, OrderStatus, ProductStatus, ShopMemberStatus, ShopStatus } from '@/types/admin'
 
 export const ADMIN_ROLE_LABEL: Record<AdminRole, string> = {
   SUPER_ADMIN: '超级管理员',
@@ -39,6 +39,12 @@ export const PRODUCT_STATUS_LABEL: Record<ProductStatus, string> = { DRAFT: '草
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = { PENDING_PAYMENT: '待支付', PAID: '已支付', PENDING_SHIPMENT: '待发货', PENDING_RECEIPT: '待收货', SHIPPED: '已发货', COMPLETED: '已完成', CANCELLED: '已取消' }
 // 售后状态文案统一在这里维护，避免各个页面分别写死导致筛选、表格、详情页文案不一致。
 export const AFTER_SALE_STATUS_LABEL: Record<AfterSaleStatus, string> = { PENDING: '待商家处理', REJECTED: '已驳回', WAITING_RETURN: '待退货', REFUNDING: '退款中', COMPLETED: '已完成', CANCELLED: '已取消' }
+export const SHOP_STATUS_LABEL: Record<ShopStatus, string> = { PENDING: '待开通', ACTIVE: '营业中', SUSPENDED: '已停业', CLOSED: '已关闭' }
+export const SHOP_STATUS_TYPE: Record<ShopStatus, 'success' | 'warning' | 'danger' | 'info'> = { PENDING: 'warning', ACTIVE: 'success', SUSPENDED: 'danger', CLOSED: 'info' }
+export const SHOP_MEMBER_STATUS_LABEL: Record<ShopMemberStatus, string> = { ACTIVE: '正常', DISABLED: '停用' }
+export const AFTER_SALE_APPEAL_STATUS_LABEL: Record<AfterSaleAppealStatus, string> = { PENDING: '待裁决', APPROVED: '已同意', REJECTED: '已驳回' }
+export const AFTER_SALE_APPEAL_TRIGGER_LABEL: Record<AfterSaleAppealTriggerType, string> = { MERCHANT_REJECTED: '商家驳回', MERCHANT_TIMEOUT: '商家超时' }
+export const AFTER_SALE_TYPE_LABEL: Record<AfterSaleType, string> = { REFUND_ONLY: '仅退款', RETURN_REFUND: '退货退款' }
 
 // 表格插槽里的 row 会被 Element Plus 泛型推断成宽泛类型，统一用函数收口，避免模板里直接索引 Record 产生隐式 any 报错。
 export function getProductStatusLabel(status: ProductStatus) {
