@@ -202,7 +202,7 @@ onMounted(() => {
           </template>
         </el-table-column>
         <el-table-column prop="updatedAt" label="更新时间" min-width="190" />
-        <el-table-column label="操作" fixed="right" width="360">
+        <el-table-column label="操作" fixed="right" width="230">
           <template #default="{ row }">
             <div class="table-actions">
               <el-button link type="primary" @click="openDetail(row)">查看</el-button>

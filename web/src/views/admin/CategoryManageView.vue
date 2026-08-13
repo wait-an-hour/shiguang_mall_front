@@ -236,7 +236,8 @@ function openAttributeEditor(item?: CategoryAttributeView) {
           required: item.required,
           filterable: item.filterable,
           sortOrder: item.sortOrder,
-          optionText: item.options.join('\n')
+          // 非选项类属性没有可选值，接口为空时这里保持空字符串，确保编辑弹窗可以正常打开。
+          optionText: item.options?.join('\n') ?? ''
         }
       : createEmptyAttribute(attributes.value.length + 1)
   )
@@ -308,8 +309,8 @@ onMounted(loadData)
     </PageHeader>
 
     <el-card class="sg-card" shadow="never" v-loading="loading">
-      <el-table :data="rows" row-key="id" default-expand-all :row-class-name="getCategoryRowClassName">
-        <el-table-column label="分类名称">
+      <el-table :data="rows" row-key="id" default-expand-all :indent="12" :row-class-name="getCategoryRowClassName">
+        <el-table-column label="分类名称" min-width="220">
           <template #default="{ row }">
             <span class="category-name" :class="`category-name-level-${row.level}`">{{ row.name }}</span>
           </template>
@@ -436,12 +437,12 @@ onMounted(loadData)
 :deep(.category-row-level-1) { --el-table-tr-bg-color: #f8fbff; }
 :deep(.category-row-level-2) { --el-table-tr-bg-color: #f8fffb; }
 :deep(.category-row-level-3) { --el-table-tr-bg-color: #fffaf2; }
-.category-name { display: inline-flex; align-items: center; font-weight: 500; }
-.category-name-level-1 { min-width: 4em; color: #1d4ed8; font-size: 15px; font-weight: 700; text-align: right; }
+.category-name { display: inline-flex; align-items: center; min-width: 0; font-weight: 500; }
+.category-name-level-1 { color: #1d4ed8; font-size: 15px; font-weight: 700; }
 .category-name-level-2 { color: #059669; font-size: 14px; font-weight: 600; }
-.category-name-level-3 { padding-left: 8px; color: #d97706; font-size: 13.5px; }
-.category-name-level-4 { padding-left: 16px; color: #7c3aed; font-size: 13px; }
-.category-name-level-5 { padding-left: 24px; color: #dc2626; font-size: 12.5px; }
+.category-name-level-3 { color: #d97706; font-size: 13.5px; }
+.category-name-level-4 { color: #7c3aed; font-size: 13px; }
+.category-name-level-5 { color: #dc2626; font-size: 12.5px; }
 :deep(.category-level-tag-2 .el-tag__content) { color: #059669; }
 :deep(.category-level-tag-3 .el-tag__content) { color: #d97706; }
 :deep(.category-level-tag-4 .el-tag__content) { color: #7c3aed; }

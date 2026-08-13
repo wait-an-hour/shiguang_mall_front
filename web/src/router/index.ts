@@ -292,7 +292,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'orders', name: ROUTE_NAME.AdminOrders, component: () => import('@/views/admin/OrderManageView.vue'), meta: { ...adminRouteMeta, title: '订单管理', permissions: ['admin:order:view'] } },
       { path: 'after-sales', name: ROUTE_NAME.AdminAfterSales, component: () => import('@/views/admin/AfterSaleQueryView.vue'), meta: { ...adminRouteMeta, title: '售后查询', permissions: ['admin:operation:read'] } },
       { path: 'after-sale-appeals', name: ROUTE_NAME.AdminAfterSaleAppeals, component: () => import('@/views/admin/AfterSaleReviewView.vue'), meta: { ...adminRouteMeta, title: '售后审核', permissions: ['admin:after-sale:audit'] } },
-      { path: 'merchant-wallets', name: ROUTE_NAME.AdminMerchantWallets, component: () => import('@/views/admin/MerchantWalletManageView.vue'), meta: { ...adminRouteMeta, title: '商家钱包', permissions: ['admin:operation:read'] } }
+      { path: 'merchant-wallets', name: ROUTE_NAME.AdminMerchantWallets, component: () => import('@/views/admin/MerchantWalletManageView.vue'), meta: { ...adminRouteMeta, title: '商家钱包', permissions: ['admin:operation:read'] } },
+      { path: 'coupons', name: ROUTE_NAME.AdminCoupons, component: () => import('@/views/admin/CouponManageView.vue'), meta: { ...adminRouteMeta, title: '优惠券管理', permissions: ['admin:operation:read'] } }
     ]
   },
   {

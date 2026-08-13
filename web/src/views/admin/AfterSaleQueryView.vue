@@ -147,7 +147,9 @@ onMounted(() => {
             <el-option label="失败" value="FAILED" />
           </el-select>
         </el-form-item>
-        <el-button type="primary" @click="search">查询</el-button>
+        <el-form-item class="query-action-item">
+          <el-button type="primary" @click="search">查询</el-button>
+        </el-form-item>
       </el-form>
     </el-card>
 
@@ -205,6 +207,10 @@ onMounted(() => {
 
 .query-form :deep(.el-form-item) {
   margin: 0;
+}
+
+.query-action-item {
+  flex: 0 0 auto;
 }
 
 .shop-select,

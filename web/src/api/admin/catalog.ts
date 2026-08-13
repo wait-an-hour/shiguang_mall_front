@@ -131,8 +131,17 @@ export function setBrandStatus(id: Id, status: CommonStatus) {
   return request.post(`/platform/catalog/brands/${id}/status`, { targetStatus: status })
 }
 
-export function listCategoryAttributes(categoryId: Id) {
-  return request.get<CategoryAttributeView[]>(`/platform/catalog/categories/${categoryId}/attributes`) as unknown as Promise<CategoryAttributeView[]>
+function normalizeCategoryAttribute(item: CategoryAttributeView): CategoryAttributeView {
+  return {
+    ...item,
+    // 后端对非选项类属性可能返回 null 或省略 options，前端统一转成空数组，避免编辑时 join 报错。
+    options: Array.isArray(item.options) ? item.options : []
+  }
+}
+
+export async function listCategoryAttributes(categoryId: Id) {
+  const data = await request.get<CategoryAttributeView[]>(`/platform/catalog/categories/${categoryId}/attributes`) as unknown as CategoryAttributeView[]
+  return data.map(normalizeCategoryAttribute)
 }
 
 export function createCategoryAttribute(categoryId: Id, data: CategoryAttributeRequest) {

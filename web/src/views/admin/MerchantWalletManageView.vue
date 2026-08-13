@@ -72,9 +72,11 @@ onMounted(() => void loadWallets())
   <div class="page-view">
     <PageHeader title="商家钱包" description="查看各店铺钱包余额、资金流水、结算和提现状态。" />
     <el-card class="sg-card" shadow="never">
-      <el-form inline @submit.prevent="search">
+      <el-form class="wallet-query-form" inline @submit.prevent="search">
         <el-form-item label="店铺 ID"><el-input v-model="shopId" clearable placeholder="全部店铺" /></el-form-item>
-        <el-button type="primary" @click="search">查询</el-button>
+        <el-form-item>
+          <el-button type="primary" @click="search">查询</el-button>
+        </el-form-item>
       </el-form>
       <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" show-icon />
       <el-tabs v-model="activeTab" @tab-change="(name: string) => name === 'wallets' ? loadWallets() : loadTransactions()">
@@ -110,3 +112,16 @@ onMounted(() => void loadWallets())
     </el-card>
   </div>
 </template>
+
+<style scoped>
+.wallet-query-form {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 48px;
+}
+
+.wallet-query-form :deep(.el-form-item) {
+  margin: 0;
+}
+</style>

@@ -35,6 +35,10 @@ export type PermissionCode =
   | 'admin:order:view'
   | 'admin:after-sale:audit'
   | 'admin:operation:read'
+  | 'platform:coupon:read'
+  | 'platform:coupon:manage'
+  | 'platform:coupon:grant'
+  | 'platform:coupon:governance'
   | 'shop:home:view'
 
 export interface PlatformUser {

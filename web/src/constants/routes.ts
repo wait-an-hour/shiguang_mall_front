@@ -33,6 +33,7 @@ export const ROUTE_NAME = {
   AdminAfterSales: 'AdminAfterSales',
   AdminAfterSaleAppeals: 'AdminAfterSaleAppeals',
   AdminMerchantWallets: 'AdminMerchantWallets',
+  AdminCoupons: 'AdminCoupons',
   Forbidden: 'Forbidden',
   NotFound: 'NotFound'
 } as const

@@ -38,6 +38,10 @@ const ADMIN_PERMISSIONS_BY_BACKEND: Record<string, PermissionCode[]> = {
   'platform:shop:member:manage': ['admin:shop:member:manage'],
   'platform:product:audit': ['admin:product:view', 'admin:product:audit'],
   'platform:operation:read': ['admin:operation:read', 'admin:order:view', 'admin:inventory:view'],
+  'platform:coupon:read': ['platform:coupon:read'],
+  'platform:coupon:manage': ['platform:coupon:read', 'platform:coupon:manage'],
+  'platform:coupon:grant': ['platform:coupon:grant'],
+  'platform:coupon:governance': ['platform:coupon:governance'],
   'platform:after-sale:manage': ['admin:after-sale:audit']
 }
 
@@ -55,7 +59,11 @@ const PLATFORM_ROLE_PERMISSION_MAP: Partial<Record<AdminRole, PermissionCode[]>>
     'admin:inventory:view',
     'admin:order:view',
     'admin:after-sale:audit',
-    'admin:operation:read'
+    'admin:operation:read',
+    'platform:coupon:read',
+    'platform:coupon:manage',
+    'platform:coupon:grant',
+    'platform:coupon:governance'
   ],
   PLATFORM_SHOP_ADMIN: [],
   PLATFORM_PRODUCT_AUDITOR: ['admin:product:view', 'admin:product:audit'],
