@@ -4,7 +4,8 @@ import type { Id, Money, PageView, Timestamp } from '@/types/common'
 export type CouponOwnerType = 'PLATFORM' | 'SHOP'
 export type CouponActivityType = 'COUPON_CENTER' | 'FLASH_CLAIM' | 'NEW_USER_WELCOME' | 'TARGETED_CAMPAIGN'
 export type CouponActivityStatus = 'DRAFT' | 'SCHEDULED' | 'RUNNING' | 'PAUSED' | 'ENDED' | 'CANCELLED'
-export type CouponTemplateStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'ENDED'
+// 归档模板仅保留历史查询和复制能力，默认不应计入活动可管理模板数量。
+export type CouponTemplateStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'ENDED' | 'ARCHIVED'
 export type CouponType = 'PERCENTAGE' | 'THRESHOLD_REDUCTION' | 'CASH_RED_PACKET'
 export type CouponFundingType = 'PLATFORM' | 'SHOP' | 'SHARED'
 export type CouponDistributionType = 'PUBLIC_CLAIM' | 'FLASH_CLAIM' | 'REDEEM_CODE' | 'DIRECT_GRANT' | 'SYSTEM_GRANT'
@@ -89,6 +90,8 @@ export async function createCouponTemplate(payload: CreateCouponTemplateRequest)
 export async function updateCouponTemplate(id: Id, payload: UpdateCouponTemplateRequest) { return request.put<CouponTemplate>(`/platform/coupon-templates/${id}`, payload) as unknown as Promise<CouponTemplate> }
 export async function activateCouponTemplate(id: Id, payload: VersionRequest) { return request.post<CouponTemplate>(`/platform/coupon-templates/${id}/activate`, payload, { headers: { 'Idempotency-Key': crypto.randomUUID() } }) as unknown as Promise<CouponTemplate> }
 export async function pauseCouponTemplate(id: Id, payload: ReasonVersionRequest) { return request.post<CouponTemplate>(`/platform/coupon-templates/${id}/pause`, payload, { headers: { 'Idempotency-Key': crypto.randomUUID() } }) as unknown as Promise<CouponTemplate> }
+export async function archiveCouponTemplate(id: Id, payload: ReasonVersionRequest) { return request.post<CouponTemplate>(`/platform/coupon-templates/${id}/archive`, payload, { headers: { 'Idempotency-Key': crypto.randomUUID() } }) as unknown as Promise<CouponTemplate> }
+export async function endCouponTemplate(id: Id, payload: ReasonVersionRequest) { return request.post<CouponTemplate>(`/platform/coupon-templates/${id}/end`, payload, { headers: { 'Idempotency-Key': crypto.randomUUID() } }) as unknown as Promise<CouponTemplate> }
 export async function copyCouponTemplate(id: Id, payload: CopyCouponTemplateRequest) { return request.post<CouponTemplate>(`/platform/coupon-templates/${id}/copy`, payload, { headers: { 'Idempotency-Key': crypto.randomUUID() } }) as unknown as Promise<CouponTemplate> }
 export async function listCouponUsers(params: CouponUserQuery = {}) { return request.get<PageView<CouponUserRecord>>('/platform/coupon-operations/user-coupons', { params }) as unknown as Promise<PageView<CouponUserRecord>> }
 export async function listCouponRedemptions(params: CouponRedemptionQuery = {}) { return request.get<PageView<CouponRedemptionRecord>>('/platform/coupon-operations/redemptions', { params }) as unknown as Promise<PageView<CouponRedemptionRecord>> }

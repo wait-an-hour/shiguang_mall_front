@@ -4,7 +4,7 @@ import type { AccountStatus, PermissionCode, PlatformAccount, RoleRecord } from 
 
 export interface PlatformUserQuery {
   keyword?: string
-  status?: string
+  status?: AccountStatus | ''
   roleCode?: string
   scopeType?: 'PLATFORM' | 'SHOP' | ''
   page?: number

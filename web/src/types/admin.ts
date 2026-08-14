@@ -19,7 +19,7 @@ export type AdminRole =
 export type AccountStatus = 'ACTIVE' | 'DISABLED' | 'LOCKED'
 export type CommonStatus = 'ENABLED' | 'DISABLED'
 export type ProductStatus = 'DRAFT' | 'PENDING_REVIEW' | 'ON_SHELF' | 'OFF_SHELF' | 'REJECTED' | 'BANNED'
-export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'PENDING_SHIPMENT' | 'PENDING_RECEIPT' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED'
+export type OrderStatus = 'PENDING_PAYMENT' | 'PENDING_SHIPMENT' | 'PENDING_RECEIPT' | 'COMPLETED' | 'CANCELLED'
 export type AfterSaleStatus = 'PENDING' | 'REJECTED' | 'WAITING_RETURN' | 'REFUNDING' | 'COMPLETED' | 'CANCELLED'
 export type PermissionCode =
   | 'admin:dashboard:view'

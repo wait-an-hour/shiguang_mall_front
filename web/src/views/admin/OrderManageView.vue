@@ -7,7 +7,7 @@ import AppPagination from '@/components/common/AppPagination.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
 import { listOrders } from '@/api/admin/orders'
 import { useAdminFiltersStore } from '@/stores/adminFilters'
-import { formatMoney, getOrderStatusLabel } from '@/utils/labels'
+import { ORDER_STATUS_LABEL, formatMoney, getOrderStatusLabel } from '@/utils/labels'
 import type { OrderStatus, PlatformOrder } from '@/types/admin'
 
 const key = 'orders'
@@ -18,6 +18,8 @@ const total = ref(0)
 const rows = ref<PlatformOrder[]>([])
 const detail = ref<PlatformOrder>()
 const detailVisible = ref(false)
+// 状态筛选项直接来自订单状态展示映射，保证下拉栏和表格内容使用同一套状态码。
+const orderStatusOptions = Object.entries(ORDER_STATUS_LABEL) as Array<[OrderStatus, string]>
 
 function statusType(status: OrderStatus) {
   return status === 'COMPLETED' ? 'success' : status === 'PENDING_PAYMENT' ? 'warning' : status === 'CANCELLED' ? 'danger' : 'info'
@@ -65,11 +67,7 @@ onMounted(loadData)
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="query.status" clearable>
-            <el-option label="待支付" value="PENDING_PAYMENT" />
-            <el-option label="已支付" value="PAID" />
-            <el-option label="已发货" value="SHIPPED" />
-            <el-option label="已完成" value="COMPLETED" />
-            <el-option label="已取消" value="CANCELLED" />
+            <el-option v-for="[value, label] in orderStatusOptions" :key="value" :label="label" :value="value" />
           </el-select>
         </el-form-item>
         <el-button type="primary" @click="loadData">查询</el-button>

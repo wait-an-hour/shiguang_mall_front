@@ -36,7 +36,7 @@ export const PERMISSION_RESOURCE_LABEL: Record<string, string> = {
 
 export const COMMON_STATUS_LABEL: Record<CommonStatus, string> = { ENABLED: '启用', DISABLED: '停用' }
 export const PRODUCT_STATUS_LABEL: Record<ProductStatus, string> = { DRAFT: '草稿', PENDING_REVIEW: '待审核', ON_SHELF: '上架中', OFF_SHELF: '已下架', REJECTED: '已驳回', BANNED: '已禁售' }
-export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = { PENDING_PAYMENT: '待支付', PAID: '已支付', PENDING_SHIPMENT: '待发货', PENDING_RECEIPT: '待收货', SHIPPED: '已发货', COMPLETED: '已完成', CANCELLED: '已取消' }
+export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = { PENDING_PAYMENT: '待支付', PENDING_SHIPMENT: '待发货', PENDING_RECEIPT: '待收货', COMPLETED: '已完成', CANCELLED: '已取消' }
 // 售后状态文案统一在这里维护，避免各个页面分别写死导致筛选、表格、详情页文案不一致。
 export const AFTER_SALE_STATUS_LABEL: Record<AfterSaleStatus, string> = { PENDING: '待商家处理', REJECTED: '已驳回', WAITING_RETURN: '待退货', REFUNDING: '退款中', COMPLETED: '已完成', CANCELLED: '已取消' }
 export const SHOP_STATUS_LABEL: Record<ShopStatus, string> = { PENDING: '待开通', ACTIVE: '营业中', SUSPENDED: '已停业', CLOSED: '已关闭' }

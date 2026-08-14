@@ -10,7 +10,7 @@ import ConfirmActionButton from '@/components/common/ConfirmActionButton.vue'
 import { listAccounts, resetAccountPassword, saveAccount, setAccountStatus } from '@/api/admin/platformAccounts'
 import { ADMIN_ROLE_LABEL } from '@/utils/labels'
 import { useAdminFiltersStore } from '@/stores/adminFilters'
-import type { AdminRole, PlatformAccount } from '@/types/admin'
+import type { AccountStatus, AdminRole, PlatformAccount } from '@/types/admin'
 import type { PlatformUserView } from '@/api/admin/rbac'
 
 type AccountRow = PlatformAccount & {
@@ -78,7 +78,7 @@ const key = 'accounts'
 const filterStore = useAdminFiltersStore()
 const query = reactive((filterStore.getFilter(key) ?? {}) as {
   keyword?: string
-  status?: string
+  status?: AccountStatus | ''
   page?: number
   pageSize?: number
 })
@@ -158,13 +158,17 @@ async function loadData() {
         platformRoles: item.platformRoles
       }
     })
-    rows.value = mappedRows.length > 0 ? mappedRows : PLATFORM_ACCOUNT_FALLBACK_ROWS
-    // 分页总数必须使用后端返回的总量，不能用当前页条数，否则无论后端有多少账号都只会显示 1 页。
-    total.value = data.total ?? rows.value.length
+    // 兜底账号仅用于无筛选的初始空列表。选择状态或关键词后必须严格展示接口结果，
+    // 否则“停用/锁定”查询为空时会错误地回填为正常账号。
+    const hasQueryCondition = Boolean(query.status || query.keyword?.trim())
+    rows.value = mappedRows.length > 0 || hasQueryCondition ? mappedRows : PLATFORM_ACCOUNT_FALLBACK_ROWS
+    // 分页总数必须与当前数据来源一致，避免表格和总数出现矛盾。
+    total.value = mappedRows.length > 0 || hasQueryCondition ? data.total : PLATFORM_ACCOUNT_FALLBACK_ROWS.length
   } catch {
-    // 接口如果暂时查不到数据，仍然用前端兜底账号保证管理页可见，避免页面空白。
-    rows.value = PLATFORM_ACCOUNT_FALLBACK_ROWS
-    total.value = PLATFORM_ACCOUNT_FALLBACK_ROWS.length
+    // 查询失败时也尊重筛选条件，不能以正常账号掩盖停用或锁定状态的空结果。
+    const hasQueryCondition = Boolean(query.status || query.keyword?.trim())
+    rows.value = hasQueryCondition ? [] : PLATFORM_ACCOUNT_FALLBACK_ROWS
+    total.value = hasQueryCondition ? 0 : PLATFORM_ACCOUNT_FALLBACK_ROWS.length
   } finally {
     loading.value = false
   }
