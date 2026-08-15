@@ -17,6 +17,7 @@ export const ROUTE_NAME = {
   MerchantAfterSaleDetail: 'MerchantAfterSaleDetail',
   MerchantMemberList: 'MerchantMemberList',
   MerchantWallet: 'MerchantWallet',
+  MerchantCoupons: 'MerchantCoupons',
   AdminDashboard: 'AdminDashboard',
   AdminRoles: 'AdminRoles',
   AdminAccounts: 'AdminAccounts',

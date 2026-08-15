@@ -39,7 +39,7 @@ const menus = computed<AdminMenuItem[]>(() => [
   { title: '售后查询', path: '/admin/after-sales', icon: Service, permissions: ['admin:operation:read'] },
   { title: '售后审核', path: '/admin/after-sale-appeals', icon: Discount, permissions: ['admin:after-sale:audit'] },
   { title: '商家钱包', path: '/admin/merchant-wallets', icon: Wallet, permissions: ['admin:operation:read'] },
-  { title: '优惠券管理', path: '/admin/coupons', icon: Coin, permissions: ['admin:operation:read'] }
+  { title: '优惠券管理', path: '/admin/coupons', icon: Coin, permissions: ['platform:coupon:read'] }
 ])
 
 const visibleMenus = computed(() => menus.value.filter((item) => {
