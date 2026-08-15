@@ -216,7 +216,7 @@ onMounted(() => {
 
 <template>
   <div class="page-view">
-    <PageHeader title="平台账号管理" description="仅维护平台管理员与运营账号，不包含店铺成员。">
+    <PageHeader title="平台账号管理" description="维护平台账号">
       <template #actions>
         <el-button type="primary" @click="openEdit()">新增平台账号</el-button>
       </template>
