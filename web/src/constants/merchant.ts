@@ -18,6 +18,10 @@ export const SHOP_PERMISSION = {
   OrderRead: 'shop:order:read',
   OrderShip: 'shop:order:ship',
   AfterSaleManage: 'shop:after-sale:manage',
+  CouponRead: 'shop:coupon:read',
+  CouponManage: 'shop:coupon:manage',
+  CouponGrant: 'shop:coupon:grant',
+  CouponFundingApprove: 'shop:coupon:funding:approve',
   MemberManage: 'shop:member:manage',
   WalletRead: 'shop:wallet:read',
   WalletWithdraw: 'shop:wallet:withdraw'

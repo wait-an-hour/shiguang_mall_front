@@ -9,6 +9,7 @@ import {
   List,
   Operation,
   Switch,
+  Ticket,
   User,
   Wallet
 } from '@element-plus/icons-vue'
@@ -65,6 +66,12 @@ const menuItems = computed(() => [
     visible: merchantStore.hasShopPermission(SHOP_PERMISSION.WalletRead)
   },
   {
+    label: '优惠券管理',
+    routeName: ROUTE_NAME.MerchantCoupons,
+    icon: Ticket,
+    visible: merchantStore.hasAnyShopPermission([SHOP_PERMISSION.CouponRead, SHOP_PERMISSION.CouponGrant, SHOP_PERMISSION.CouponFundingApprove])
+  },
+  {
     label: '成员管理',
     routeName: ROUTE_NAME.MerchantMemberList,
     icon: User,
@@ -79,7 +86,8 @@ const parentMenuByRouteName: Record<string, string> = {
   [ROUTE_NAME.MerchantInventoryDetail]: ROUTE_NAME.MerchantInventoryList,
   [ROUTE_NAME.MerchantInventoryTransactions]: ROUTE_NAME.MerchantInventoryList,
   [ROUTE_NAME.MerchantOrderDetail]: ROUTE_NAME.MerchantOrderList,
-  [ROUTE_NAME.MerchantAfterSaleDetail]: ROUTE_NAME.MerchantAfterSaleList
+  [ROUTE_NAME.MerchantAfterSaleDetail]: ROUTE_NAME.MerchantAfterSaleList,
+  [ROUTE_NAME.MerchantCoupons]: ROUTE_NAME.MerchantCoupons
 }
 
 const activeMenu = computed(() => {

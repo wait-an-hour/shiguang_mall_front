@@ -33,6 +33,8 @@ async function initMerchantEntry() {
               ? ROUTE_NAME.MerchantAfterSaleList
               : accessibleShop.permissions.includes('shop:wallet:read')
                 ? ROUTE_NAME.MerchantWallet
+                : accessibleShop.permissions.some((permission) => ['shop:coupon:read', 'shop:coupon:grant', 'shop:coupon:funding:approve'].includes(permission))
+                  ? ROUTE_NAME.MerchantCoupons
                 : ROUTE_NAME.MerchantMemberList
     await router.replace({ name: routeName, params: { shopId: accessibleShop.id } })
     return
