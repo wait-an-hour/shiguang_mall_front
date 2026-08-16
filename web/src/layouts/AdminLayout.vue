@@ -43,8 +43,8 @@ const menus = computed<AdminMenuItem[]>(() => [
 ])
 
 const visibleMenus = computed(() => menus.value.filter((item) => {
-  // 平台店铺管理员没有独立首页，左侧直接隐藏“首页概览”，避免误导为与超级管理员共用首页。
-  if (auth.role === 'PLATFORM_SHOP_ADMIN' && item.title === '首页概览') return false
+  // 平台商品审核员和平台店铺管理员没有独立首页，左侧隐藏“首页概览”。
+  if (['PLATFORM_PRODUCT_AUDITOR', 'PLATFORM_SHOP_ADMIN'].includes(auth.role ?? '') && item.title === '首页概览') return false
   return item.permissionMode === 'any'
     ? item.permissions.some((permission) => auth.hasPermissions([permission]))
     : auth.hasPermissions(item.permissions)

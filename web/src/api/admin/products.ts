@@ -101,6 +101,9 @@ function toPlatformProduct(item: PlatformProductSummaryView): PlatformProduct {
 
 function toPlatformProductDetail(item: PlatformProductDetailView): PlatformProduct {
   const skus = item.skus.map(toProductSku)
+  // 金额是两位小数字符串，直接按字符串比较会把 "100.00" 排在 "9.90" 前面。
+  // 转为数字仅用于求最小展示价，接口原始金额字符串仍完整保留，避免展示精度变化。
+  const lowestPrice = skus.reduce((min, sku) => Number(sku.salePrice) < Number(min) ? sku.salePrice : min, skus[0]?.salePrice ?? '0.00')
   return {
     id: item.id,
     spuNo: item.spuNo,
@@ -109,7 +112,7 @@ function toPlatformProductDetail(item: PlatformProductDetailView): PlatformProdu
     shopName: item.shop.shopName,
     categoryName: item.category.categoryName,
     brandName: item.brand?.brandName ?? '-',
-    price: skus.reduce((min, sku) => sku.salePrice < min ? sku.salePrice : min, skus[0]?.salePrice ?? '0.00'),
+    price: lowestPrice,
     status: item.status,
     contentVersion: item.contentVersion,
     createdAt: item.createdAt,
